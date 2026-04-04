@@ -6,7 +6,7 @@ import type { Easing } from 'framer-motion'
 const EASE: Easing = 'easeOut'
 
 export function useScrollReveal(delay = 0) {
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-80px' })
   return {
     ref,

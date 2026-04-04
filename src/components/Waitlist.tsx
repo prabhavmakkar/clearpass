@@ -13,7 +13,10 @@ function validateEmail(value: string): string | null {
 
 function validatePhone(value: string): string | null {
   if (!value.trim()) return 'Phone number is required'
-  const digits = value.replace(/[\s\-+]/g, '').replace(/^91/, '')
+  const stripped = value.replace(/[\s\-+]/g, '')
+  const digits = stripped.length === 12 && stripped.startsWith('91')
+    ? stripped.slice(2)
+    : stripped
   if (!/^\d{10}$/.test(digits)) return 'Enter a valid 10-digit phone number'
   return null
 }
@@ -37,18 +40,20 @@ export default function Waitlist() {
 
     const url = import.meta.env.VITE_APPS_SCRIPT_URL as string | undefined
     if (!url) {
+      if (import.meta.env.DEV) {
+        console.warn('[Waitlist] VITE_APPS_SCRIPT_URL is not set in .env')
+      }
       setFormState('error')
       return
     }
 
     setFormState('submitting')
     try {
-      const res = await fetch(url, {
+      await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ email, phone }),
       })
-      if (!res.ok) throw new Error('Non-ok response')
       setFormState('success')
     } catch {
       setFormState('error')
@@ -80,27 +85,29 @@ export default function Waitlist() {
                   <input
                     type="email"
                     placeholder="Email address"
+                    aria-label="Email address"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setEmailError(null) }}
                     className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-gray-500"
                   />
-                  {emailError && <p className="mt-1 text-xs text-red-400">{emailError}</p>}
+                  {emailError && <p role="alert" className="mt-1 text-xs text-red-400">{emailError}</p>}
                 </div>
                 <div>
                   <input
                     type="tel"
                     placeholder="Phone number"
+                    aria-label="Phone number"
                     value={phone}
                     onChange={(e) => { setPhone(e.target.value); setPhoneError(null) }}
                     className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-gray-500"
                   />
-                  {phoneError && <p className="mt-1 text-xs text-red-400">{phoneError}</p>}
+                  {phoneError && <p role="alert" className="mt-1 text-xs text-red-400">{phoneError}</p>}
                 </div>
               </div>
               <button
                 type="submit"
                 disabled={formState === 'submitting'}
-                className="w-full rounded-lg bg-white py-3.5 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="w-full rounded-lg bg-white py-3.5 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {formState === 'submitting' ? 'Submitting…' : 'Secure My Spot →'}
               </button>
