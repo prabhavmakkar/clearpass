@@ -3,6 +3,7 @@ import Hero from './components/Hero'
 import Story from './components/Story'
 import Features from './components/Features'
 import Waitlist from './components/Waitlist'
+import Footer from './components/Footer'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Features />
       <hr className="mx-auto max-w-5xl border-gray-100" />
       <Waitlist />
+      <Footer />
     </div>
   )
 }
