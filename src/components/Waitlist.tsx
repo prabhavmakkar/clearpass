@@ -49,8 +49,12 @@ export default function Waitlist() {
 
     setFormState('submitting')
     try {
+      // mode: 'no-cors' is required for Google Apps Script — it redirects to
+      // script.googleusercontent.com which doesn't return CORS headers.
+      // We get an opaque response (can't read body) but the POST goes through.
       await fetch(url, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ email, phone }),
       })
