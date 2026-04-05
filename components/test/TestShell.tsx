@@ -18,6 +18,7 @@ export function TestShell({ sessionId, questions, topic }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>(Array(questions.length).fill(null))
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [startedAt] = useState(() => new Date().toISOString())
 
   const answeredCount = answers.filter(a => a !== null).length
   const currentQuestion = questions[currentIndex]
@@ -40,7 +41,7 @@ export function TestShell({ sessionId, questions, topic }: Props) {
       topic,
       questions,
       answers,
-      startedAt: new Date().toISOString(),
+      startedAt,
       submittedAt: new Date().toISOString(),
     }
     sessionStorage.setItem('clearpass_session', JSON.stringify(session))
@@ -59,7 +60,7 @@ export function TestShell({ sessionId, questions, topic }: Props) {
           onSelect={handleSelect}
         />
       </AnimatePresence>
-      <div className="mt-8 flex justify-between">
+      <div className="mt-8 flex justify-between items-center">
         <button
           onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
           disabled={currentIndex === 0}
@@ -67,23 +68,16 @@ export function TestShell({ sessionId, questions, topic }: Props) {
         >
           ← Previous
         </button>
-        {currentIndex < questions.length - 1 ? (
+        {currentIndex < questions.length - 1 && (
           <button
             onClick={() => setCurrentIndex(i => i + 1)}
             className="text-sm text-gray-800 underline underline-offset-4"
           >
             Next →
           </button>
-        ) : (
-          <SubmitButton
-            answeredCount={answeredCount}
-            totalCount={questions.length}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-          />
         )}
       </div>
-      {currentIndex < questions.length - 1 && answeredCount === questions.length && (
+      {(currentIndex === questions.length - 1 || answeredCount === questions.length) && (
         <SubmitButton
           answeredCount={answeredCount}
           totalCount={questions.length}

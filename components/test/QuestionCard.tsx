@@ -27,7 +27,7 @@ export function QuestionCard({ question, questionNumber, selectedIndex, onSelect
           const isSelected = selectedIndex === i
           return (
             <button
-              key={i}
+              key={`${questionNumber}-${i}`}
               onClick={() => onSelect(i)}
               className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-sm transition-all duration-150
                 ${isSelected
