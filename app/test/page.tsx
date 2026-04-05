@@ -1,17 +1,17 @@
 import { TestShell } from '@/components/test/TestShell'
+import { assembleTest, cacheSession } from '@/lib/testEngine'
 import type { ClientQuestion } from '@/lib/types'
+import { nanoid } from 'nanoid'
 
-async function getQuestions(): Promise<{ sessionId: string; questions: ClientQuestion[] }> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  const res = await fetch(`${baseUrl}/api/questions?topic=ca-inter-audit`, {
-    cache: 'no-store',
-  })
-  if (!res.ok) throw new Error('Failed to fetch questions')
-  return res.json()
-}
+export const dynamic = 'force-dynamic'
 
 export default async function TestPage() {
-  const { sessionId, questions } = await getQuestions()
+  const allQuestions = await assembleTest('ca-inter-audit')
+  const sessionId = nanoid()
+  cacheSession(sessionId, allQuestions)
+  const questions: ClientQuestion[] = allQuestions.map(
+    ({ correctIndex: _, explanation: __, ...rest }) => rest
+  )
   return (
     <main className="min-h-screen bg-white">
       <nav className="sticky top-0 z-10 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
