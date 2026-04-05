@@ -28,7 +28,10 @@ export function ResultsShell() {
         answers: session.answers,
       }),
     })
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`Server error ${r.status}`)
+        return r.json()
+      })
       .then(data => setReport(data.report))
       .catch(() => setError('Failed to generate report. Please try again.'))
       .finally(() => setLoading(false))
