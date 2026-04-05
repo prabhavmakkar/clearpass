@@ -21,7 +21,13 @@ export function ResultsShell() {
     const raw = sessionStorage.getItem('clearpass_session')
     if (!raw) { router.replace('/test'); return }
 
-    const session: TestSession = JSON.parse(raw)
+    let session: TestSession
+    try {
+      session = JSON.parse(raw)
+    } catch {
+      router.replace('/test')
+      return
+    }
 
     fetch('/api/report', {
       method: 'POST',
