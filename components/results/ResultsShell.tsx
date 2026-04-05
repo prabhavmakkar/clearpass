@@ -12,8 +12,12 @@ export function ResultsShell() {
   const [report, setReport] = useState<TestReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
 
   useEffect(() => {
+    setLoading(true)
+    setError(null)
+    setReport(null)
     const raw = sessionStorage.getItem('clearpass_session')
     if (!raw) { router.replace('/test'); return }
 
@@ -35,7 +39,7 @@ export function ResultsShell() {
       .then(data => setReport(data.report))
       .catch(() => setError('Failed to generate report. Please try again.'))
       .finally(() => setLoading(false))
-  }, [router])
+  }, [router, retryCount])
 
   if (loading) {
     return (
@@ -50,7 +54,7 @@ export function ResultsShell() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-500">{error ?? 'Something went wrong.'}</p>
-        <button onClick={() => router.push('/test')}
+        <button onClick={() => setRetryCount(c => c + 1)}
           className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white">
           Try Again
         </button>
