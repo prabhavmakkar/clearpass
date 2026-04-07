@@ -33,7 +33,7 @@ export function ResultsShell() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sessionId: session.sessionId,
+        sessionToken: session.sessionToken,
         topic: session.topic,
         answers: session.answers,
       }),

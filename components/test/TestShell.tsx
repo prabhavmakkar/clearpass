@@ -9,11 +9,12 @@ import type { ClientQuestion, TestSession } from '@/lib/types'
 
 interface Props {
   sessionId: string
+  sessionToken: string
   questions: ClientQuestion[]
   topic: string
 }
 
-export function TestShell({ sessionId, questions, topic }: Props) {
+export function TestShell({ sessionId, sessionToken, questions, topic }: Props) {
   const router = useRouter()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<(number | null)[]>(Array(questions.length).fill(null))
@@ -38,6 +39,7 @@ export function TestShell({ sessionId, questions, topic }: Props) {
     setIsSubmitting(true)
     const session: TestSession = {
       sessionId,
+      sessionToken,
       topic,
       questions,
       answers,

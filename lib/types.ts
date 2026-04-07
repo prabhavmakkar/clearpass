@@ -31,6 +31,7 @@ export type ClientQuestion = Omit<Question, 'correctIndex' | 'explanation'>
 
 export interface TestSession {
   sessionId: string
+  sessionToken: string          // HMAC-signed token — carries correct answers server-side
   topic: string
   questions: ClientQuestion[]
   answers: (number | null)[]   // index-aligned; null = unanswered

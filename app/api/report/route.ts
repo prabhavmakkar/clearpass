@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { resolveSession } from '@/lib/testEngine'
+import { verifySession } from '@/lib/sessionToken'
 import { calculateNodeScores, calculateOverallScore } from '@/lib/scoring'
 import { generateReport } from '@/lib/gemini'
 import type { TestReport, StudyPlan } from '@/lib/types'
 
 interface ReportRequest {
-  sessionId: string
+  sessionToken: string
   topic: string
   answers: (number | null)[]
 }
@@ -29,19 +29,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { sessionId, answers } = body
+  const { sessionToken, answers } = body
 
-  if (!sessionId || !Array.isArray(answers)) {
-    return NextResponse.json({ error: 'sessionId and answers are required' }, { status: 400 })
+  if (!sessionToken || !Array.isArray(answers)) {
+    return NextResponse.json({ error: 'sessionToken and answers are required' }, { status: 400 })
   }
 
-  const questions = resolveSession(sessionId)
-  if (!questions) {
+  // Verify the signed token — no shared memory or DB needed
+  let sessionPayload: { sessionId: string; questions: { id: string; nodeId: string; correctIndex: number }[] }
+  try {
+    sessionPayload = verifySession(sessionToken)
+  } catch {
     return NextResponse.json(
-      { error: 'Session not found or expired. Please restart the test.' },
-      { status: 404 }
+      { error: 'Invalid or expired session. Please restart the test.' },
+      { status: 401 }
     )
   }
+
+  const { sessionId, questions } = sessionPayload
 
   if (answers.length !== questions.length) {
     return NextResponse.json(
