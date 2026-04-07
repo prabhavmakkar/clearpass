@@ -1,5 +1,11 @@
-import type { Question, NodeScore, Tier } from './types'
+import type { NodeScore, Tier } from './types'
 import { CA_INTER_AUDIT_NODES } from './knowledgeGraph'
+
+// Minimal shape needed for scoring — works with both Question and SessionQuestion
+interface Scorable {
+  nodeId: string
+  correctIndex: number
+}
 
 function getTier(percentage: number): Tier {
   if (percentage >= 70) return 'strong'
@@ -7,7 +13,7 @@ function getTier(percentage: number): Tier {
   return 'weak'
 }
 
-export function calculateNodeScores(questions: Question[], answers: (number | null)[]): NodeScore[] {
+export function calculateNodeScores(questions: Scorable[], answers: (number | null)[]): NodeScore[] {
   const tally = new Map<string, { correct: number; total: number }>()
 
   for (let i = 0; i < questions.length; i++) {
@@ -30,7 +36,7 @@ export function calculateNodeScores(questions: Question[], answers: (number | nu
   return scores.sort((a, b) => order[a.tier] - order[b.tier])
 }
 
-export function calculateOverallScore(questions: Question[], answers: (number | null)[]): number {
+export function calculateOverallScore(questions: Scorable[], answers: (number | null)[]): number {
   if (questions.length === 0) return 0
   const correct = questions.filter((q, i) => answers[i] === q.correctIndex).length
   return Math.round((correct / questions.length) * 100)
