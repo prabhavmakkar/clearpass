@@ -1,7 +1,21 @@
+# dependencies
 node_modules
+
+# build outputs
 dist
+.next
+
+# env files
 .env
 .env.local
-src/**/*.js
+.env*.local
+
+# Next.js
+next-env.d.ts
+
+# Vercel
 .vercel
+
+# Vite legacy
 .vite-react-ssg-temp
+src/**/*.js

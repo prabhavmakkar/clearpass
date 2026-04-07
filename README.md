@@ -1,21 +1,34 @@
 # ClearPass
 
-Landing page for ClearPass — CA prep, finally done right.
+CA exam prep, finally done right. Know exactly where you're weak — fix it.
 
-## Development
+## Stack
+
+- **Next.js 15** (App Router, TypeScript)
+- **Tailwind CSS v4** + Framer Motion
+- **Google Gemini 2.5 Flash** — question generation + weakness analysis
+- **Vitest** — unit tests
+
+## Getting Started
 
 ```bash
 npm install
-npm run dev
+cp .env.example .env.local   # fill in your keys (see below)
+npm run dev                  # http://localhost:3000
 ```
 
-Open http://localhost:5173
+## Environment Variables
 
-## Waitlist Setup (Google Sheets)
+| Variable | Required | Description |
+|---|---|---|
+| `GEMINI_API_KEY` | Yes | Google AI Studio key — [get one here](https://aistudio.google.com/app/apikey) |
+| `NEXT_PUBLIC_APPS_SCRIPT_URL` | Yes | Google Apps Script URL for waitlist (see below) |
+| `NEXT_PUBLIC_APP_URL` | Yes | App base URL (`http://localhost:3000` locally) |
 
-1. Create a new Google Sheet with columns: `Timestamp | Email | Phone`
-2. Open **Extensions → Apps Script** in that sheet
-3. Paste the following code and save:
+## Waitlist Setup (Google Apps Script)
+
+1. Create a Google Sheet with columns: `Timestamp | Email | Phone`
+2. Open **Extensions → Apps Script**, paste this and save:
 
 ```js
 function doPost(e) {
@@ -28,22 +41,38 @@ function doPost(e) {
 }
 ```
 
-4. Click **Deploy → New deployment**
-   - Type: **Web app**
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-5. Copy the deployment URL
-6. Create a `.env` file at the project root:
+3. **Deploy → New deployment** — Web app, Execute as Me, Anyone can access
+4. Copy the URL → `NEXT_PUBLIC_APPS_SCRIPT_URL` in `.env.local`
 
-```
-VITE_APPS_SCRIPT_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec
-```
+## Routes
 
-7. Restart `npm run dev` — the waitlist form is now live
+| Route | Type | Description |
+|---|---|---|
+| `/` | Static | Landing page with waitlist |
+| `/test` | Dynamic | 22-question CA Intermediate Audit MCQ test |
+| `/results` | Static shell | Readiness report + AI study plan |
+| `/api/questions` | Serverless | Assembles test from question bank + Gemini |
+| `/api/report` | Serverless | Scores answers + generates Gemini report |
 
-## Build
+## Running Tests
 
 ```bash
-npm run build   # outputs to dist/
-npm run preview # preview the production build locally
+npm test            # run once
+npm run test:watch  # watch mode
+```
+
+21 tests covering question bank integrity, scoring logic, and test engine distribution.
+
+## Branches
+
+| Branch | Purpose |
+|---|---|
+| `main` | Production landing page (Vite SPA → `clearpass.snpventures.in`) |
+| `dev` | Product build (Next.js App Router → `clearpass-dev-snp.vercel.app`) |
+
+## Deploying
+
+```bash
+vercel                                              # preview deploy
+vercel alias <url> clearpass-dev-snp.vercel.app     # point stable alias
 ```
