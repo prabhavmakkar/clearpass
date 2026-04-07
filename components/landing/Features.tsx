@@ -32,18 +32,42 @@ const features: Omit<Feature, 'delay'>[] = [
   },
 ]
 
-function FeatureItem({ num, title, description, tag, delay }: Feature) {
+interface FeatureItemProps extends Feature {
+  href?: string
+}
+
+function FeatureItem({ num, title, description, tag, delay, href }: FeatureItemProps) {
   const reveal = useScrollReveal(delay)
-  return (
-    <motion.div {...reveal} className="grid grid-cols-[40px_1fr] gap-6 border-t border-gray-100 py-8">
+  const inner = (
+    <>
       <span className="pt-1 text-sm font-bold text-gray-200">{num}</span>
       <div>
-        <h3 className="mb-2 text-lg font-bold tracking-tight">{title}</h3>
+        <h3 className="mb-2 text-lg font-bold tracking-tight">
+          {title}
+          {href && <span className="ml-2 text-sm font-normal text-gray-400">→</span>}
+        </h3>
         <p className="mb-3 text-sm leading-relaxed text-gray-500">{description}</p>
         <span className="rounded bg-gray-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
           {tag}
         </span>
       </div>
+    </>
+  )
+
+  return (
+    <motion.div {...reveal} className="border-t border-gray-100">
+      {href ? (
+        <a
+          href={href}
+          className="grid grid-cols-[40px_1fr] gap-6 py-8 -mx-4 px-4 rounded-xl transition-colors hover:bg-gray-50 cursor-pointer block"
+        >
+          {inner}
+        </a>
+      ) : (
+        <div className="grid grid-cols-[40px_1fr] gap-6 py-8">
+          {inner}
+        </div>
+      )}
     </motion.div>
   )
 }
@@ -61,7 +85,12 @@ export default function Features() {
       </motion.div>
       <div>
         {features.map((f, i) => (
-          <FeatureItem key={f.num} {...f} delay={i * 0.1} />
+          <FeatureItem
+            key={f.num}
+            {...f}
+            delay={i * 0.1}
+            href={f.num === '01' ? '/test' : undefined}
+          />
         ))}
       </div>
     </section>
