@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from 'crypto'
 // Compact question data needed for scoring — no stems/options sent
 export interface SessionQuestion {
   id: string
-  nodeId: string
+  chapterId: string
   correctIndex: number
 }
 

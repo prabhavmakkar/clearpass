@@ -89,7 +89,7 @@ export default function Features() {
             key={f.num}
             {...f}
             delay={i * 0.1}
-            href={f.num === '01' ? '/test' : undefined}
+            href={f.num === '01' || f.num === '03' ? '/select' : undefined}
           />
         ))}
       </div>

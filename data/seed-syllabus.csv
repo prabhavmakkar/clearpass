@@ -1,0 +1,13 @@
+subject_id,subject_name,section_id,section_name,section_weight,chapter_id,chapter_name,chapter_weight,sort_order
+ca-inter-audit,CA Intermediate — Auditing,foundations-planning,Foundations & Planning,26,ch01,Nature Objective and Scope of Audit,8,1
+ca-inter-audit,CA Intermediate — Auditing,foundations-planning,Foundations & Planning,26,ch02,Audit Strategy Planning and Programme,9,2
+ca-inter-audit,CA Intermediate — Auditing,foundations-planning,Foundations & Planning,26,ch03,Audit Documentation and Audit Evidence,9,3
+ca-inter-audit,CA Intermediate — Auditing,risk-controls,Risk & Controls,26,ch04,Risk Assessment and Internal Control,12,4
+ca-inter-audit,CA Intermediate — Auditing,risk-controls,Risk & Controls,26,ch05,Fraud and Responsibilities of the Auditor,7,5
+ca-inter-audit,CA Intermediate — Auditing,risk-controls,Risk & Controls,26,ch06,Audit in an Automated Environment,7,6
+ca-inter-audit,CA Intermediate — Auditing,execution-procedures,Execution & Procedures,23,ch07,Audit Sampling,7,7
+ca-inter-audit,CA Intermediate — Auditing,execution-procedures,Execution & Procedures,23,ch08,Analytical Procedures,6,8
+ca-inter-audit,CA Intermediate — Auditing,execution-procedures,Execution & Procedures,23,ch09,Audit of Items of Financial Statements,10,9
+ca-inter-audit,CA Intermediate — Auditing,reporting-specialised,Reporting & Specialised,25,ch10,The Company Audit,9,10
+ca-inter-audit,CA Intermediate — Auditing,reporting-specialised,Reporting & Specialised,25,ch11,Audit Report,9,11
+ca-inter-audit,CA Intermediate — Auditing,reporting-specialised,Reporting & Specialised,25,ch12,Audit of Banks,7,12

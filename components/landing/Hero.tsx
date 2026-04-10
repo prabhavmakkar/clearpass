@@ -36,9 +36,15 @@ export default function Hero() {
           That's a problem we can fix.
         </p>
         <div className="flex flex-wrap items-center gap-4">
+          <a
+            href="/select"
+            className="rounded-lg bg-black px-7 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-80"
+          >
+            Take Free Diagnostic Test →
+          </a>
           <button
             onClick={scrollToWaitlist}
-            className="rounded-lg bg-black px-7 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-80"
+            className="rounded-lg border border-gray-300 px-7 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-500"
           >
             Join the Waitlist
           </button>

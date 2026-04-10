@@ -11,10 +11,10 @@ export default function Nav() {
         <span className="text-lg font-black tracking-tight">ClearPass</span>
         <div className="flex items-center gap-3">
           <a
-            href="/test"
+            href="/select"
             className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-semibold text-gray-800 transition-colors hover:border-gray-400"
           >
-            Test Yourself
+            Get Started
           </a>
           <button
             onClick={scrollToWaitlist}

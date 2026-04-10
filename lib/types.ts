@@ -1,80 +1,125 @@
-// ── Knowledge Graph ───────────────────────────────────────────────────
+// ── Knowledge Graph (from Neon) ────────────────────────────────────────
 
-export interface KnowledgeNode {
-  id: string                 // e.g. "audit-ch04"
-  title: string              // ICAI chapter title
-  category: 'foundation' | 'risk' | 'procedures' | 'reporting' | 'specialised'
-  examWeightPercent: number  // ICAI mark allocation estimate (12 nodes sum to 100)
-  icaiChapter: number        // 1–12
+export interface Subject {
+  id: string
+  name: string
+}
+
+export interface Section {
+  id: string
+  subjectId: string
+  name: string
+  sortOrder: number
+  examWeightPercent: number
+}
+
+export interface Chapter {
+  id: string
+  sectionId: string
+  subjectId: string
+  name: string
+  sortOrder: number
+  examWeightPercent: number
 }
 
 // ── Question ──────────────────────────────────────────────────────────
 
+export type Difficulty = 'easy' | 'medium' | 'hard'
 export type QuestionSource = 'bank' | 'ai-generated'
+export type CorrectOption = 'A' | 'B' | 'C' | 'D'
 
 export interface Question {
-  id: string                                   // "bank-ch01-001" or "ai-ch01-a3f2"
-  nodeId: string                               // → KnowledgeNode.id
+  id: string
+  chapterId: string
   stem: string
-  options: [string, string, string, string]    // exactly 4
+  options: [string, string, string, string]
   correctIndex: 0 | 1 | 2 | 3
   explanation: string
-  difficulty: 'easy' | 'medium' | 'hard'
+  difficulty: Difficulty
   source: QuestionSource
-  icaiReference?: string                       // "SA 200, Para 3"
+  icaiReference?: string
 }
 
-// Question as sent to the client (answer key stripped)
+// Client-safe version (answer key stripped)
 export type ClientQuestion = Omit<Question, 'correctIndex' | 'explanation'>
 
-// ── Test Session (sessionStorage) ─────────────────────────────────────
+// ── Adaptive Engine ───────────────────────────────────────────────────
 
-export interface TestSession {
-  sessionId: string
-  sessionToken: string          // HMAC-signed token — carries correct answers server-side
-  topic: string
-  questions: ClientQuestion[]
-  answers: (number | null)[]   // index-aligned; null = unanswered
-  startedAt: string
-  submittedAt?: string
+export interface AdaptiveState {
+  theta: number
+  answeredIds: string[]
+  consecutiveCorrect: number
+  consecutiveWrong: number
+  questionsAnswered: number
 }
 
 // ── Scoring ───────────────────────────────────────────────────────────
 
 export type Tier = 'strong' | 'moderate' | 'weak'
-// strong ≥ 70%  |  moderate 40–69%  |  weak < 40%
 
-export interface NodeScore {
-  nodeId: string
-  nodeTitle: string
+export interface ChapterScore {
+  chapterId: string
+  chapterName: string
+  sectionId: string
   correct: number
   total: number
   percentage: number
   tier: Tier
 }
 
-// ── Report (returned by /api/report) ─────────────────────────────────
+export interface SectionScore {
+  sectionId: string
+  sectionName: string
+  correct: number
+  total: number
+  percentage: number
+  tier: Tier
+  chapterIds: string[]
+}
+
+export interface ReadinessScore {
+  score: number               // 0–100, exam-weight-adjusted
+  tier: Tier
+  label: string               // "Likely to clear" | "Borderline" | "Needs work"
+}
+
+// ── Assessment Session (sessionStorage) ────────────────────────────────
+
+export interface AssessmentSession {
+  sessionId: string
+  sessionToken: string
+  subjectId: string
+  scope: { sectionIds: string[]; chapterIds: string[] }
+  questions: ClientQuestion[]
+  answers: (number | null)[]
+  startedAt: string
+  submittedAt?: string
+}
+
+// ── Assessment Report ─────────────────────────────────────────────────
 
 export interface StudyDay {
-  day: number           // 1–7
+  day: number
   focus: string
-  tasks: string[]       // 2–4 bullet strings
+  tasks: string[]
   estimatedHours: number
 }
 
 export interface StudyPlan {
   weekSummary: string
-  days: StudyDay[]      // always 7
-  priorityNodes: string[]
+  days: StudyDay[]
+  priorityChapters: string[]
 }
 
-export interface TestReport {
+export interface AssessmentReport {
   sessionId: string
-  overallScore: number       // 0–100 percentage
+  readinessScore: ReadinessScore
+  overallScore: number
   correctCount: number
   totalCount: number
-  nodeScores: NodeScore[]    // sorted weak → strong
-  weaknessAnalysis: string   // Gemini prose
+  chapterScores: ChapterScore[]
+  sectionScores: SectionScore[]
+  weaknessAnalysis: string
   studyPlan: StudyPlan
   generatedAt: string
 }

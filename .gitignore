@@ -19,3 +19,7 @@ next-env.d.ts
 # Vite legacy
 .vite-react-ssg-temp
 src/**/*.js
+
+# macOS
+.DS_Store
+**/.DS_Store
