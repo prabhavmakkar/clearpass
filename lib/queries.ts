@@ -86,6 +86,14 @@ export async function getQuestionsForChapters(chapterIds: string[]): Promise<Que
   return rows.map(mapQuestion)
 }
 
+export async function getQuestionCountsByChapter(): Promise<Record<string, number>> {
+  const sql = getDb()
+  const rows = await sql`SELECT chapter_id, count(*)::int as count FROM questions GROUP BY chapter_id`
+  const result: Record<string, number> = {}
+  for (const r of rows) result[r.chapter_id as string] = r.count as number
+  return result
+}
+
 // ── Writes (admin) ────────────────────────────────────────────────────
 
 export async function insertSubject(id: string, name: string): Promise<void> {

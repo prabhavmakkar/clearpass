@@ -1,4 +1,4 @@
-import { getSubjects, getSections, getChapters } from '@/lib/queries'
+import { getSubjects, getSections, getChapters, getQuestionCountsByChapter } from '@/lib/queries'
 import { TopicSelector } from '@/components/select/TopicSelector'
 
 export const dynamic = 'force-dynamic'
@@ -20,7 +20,10 @@ export default async function SelectPage() {
     allSections.push(...secs)
     allSectionIds.push(...secs.map(sec => sec.id))
   }
-  const allChapters = allSectionIds.length > 0 ? await getChapters(allSectionIds) : []
+  const [allChapters, questionCounts] = await Promise.all([
+    allSectionIds.length > 0 ? getChapters(allSectionIds) : Promise.resolve([]),
+    getQuestionCountsByChapter(),
+  ])
 
   return (
     <main className="min-h-screen bg-white">
@@ -29,7 +32,7 @@ export default async function SelectPage() {
           <a href="/" className="text-base font-black">ClearPass</a>
         </div>
       </nav>
-      <TopicSelector subjects={subjects} sections={allSections} chapters={allChapters} />
+      <TopicSelector subjects={subjects} sections={allSections} chapters={allChapters} questionCounts={questionCounts} />
     </main>
   )
 }

@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Subject, Section, Chapter } from '@/lib/types'
 
@@ -7,9 +7,10 @@ interface Props {
   subjects: Subject[]
   sections: Section[]
   chapters: Chapter[]
+  questionCounts: Record<string, number>
 }
 
-export function TopicSelector({ subjects, sections, chapters }: Props) {
+export function TopicSelector({ subjects, sections, chapters, questionCounts }: Props) {
   const router = useRouter()
   const [selectedSubject, setSelectedSubject] = useState(subjects[0]?.id ?? '')
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set())
@@ -17,7 +18,17 @@ export function TopicSelector({ subjects, sections, chapters }: Props) {
 
   const filteredSections = sections.filter(s => s.subjectId === selectedSubject)
 
+  const sectionHasQuestions = useMemo(() => {
+    const result: Record<string, boolean> = {}
+    for (const section of sections) {
+      const sectionChapters = chapters.filter(c => c.sectionId === section.id)
+      result[section.id] = sectionChapters.some(ch => (questionCounts[ch.id] ?? 0) > 0)
+    }
+    return result
+  }, [sections, chapters, questionCounts])
+
   function toggleSection(id: string) {
+    if (!sectionHasQuestions[id]) return
     setSelectedSections(prev => {
       const next = new Set(prev)
       if (next.has(id)) {
@@ -31,7 +42,9 @@ export function TopicSelector({ subjects, sections, chapters }: Props) {
         next.add(id)
         setSelectedChapters(prevCh => {
           const nextCh = new Set(prevCh)
-          chapters.filter(c => c.sectionId === id).forEach(c => nextCh.add(c.id))
+          chapters.filter(c => c.sectionId === id).forEach(c => {
+            if ((questionCounts[c.id] ?? 0) > 0) nextCh.add(c.id)
+          })
           return nextCh
         })
       }
@@ -40,6 +53,7 @@ export function TopicSelector({ subjects, sections, chapters }: Props) {
   }
 
   function toggleChapter(id: string) {
+    if ((questionCounts[id] ?? 0) === 0) return
     setSelectedChapters(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -82,44 +96,70 @@ export function TopicSelector({ subjects, sections, chapters }: Props) {
       )}
 
       <div className="mb-8 space-y-4">
-        {filteredSections.map(section => (
-          <div key={section.id} className="rounded-xl border border-gray-100 p-4">
-            <label className="flex cursor-pointer items-center gap-3">
-              <input
-                type="checkbox"
-                checked={selectedSections.has(section.id)}
-                onChange={() => toggleSection(section.id)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="text-sm font-bold">{section.name}</span>
-              <span className="ml-auto text-xs text-gray-400">{section.examWeightPercent}% weight</span>
-            </label>
+        {filteredSections.map(section => {
+          const hasQuestions = sectionHasQuestions[section.id]
 
-            {selectedSections.has(section.id) && (
-              <div className="mt-3 ml-7 space-y-2">
-                {chapters.filter(c => c.sectionId === section.id).map(ch => (
-                  <div key={ch.id} className="flex items-center justify-between">
-                    <label className="flex cursor-pointer items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedChapters.has(ch.id)}
-                        onChange={() => toggleChapter(ch.id)}
-                        className="h-3.5 w-3.5 rounded border-gray-300"
-                      />
-                      <span className="text-sm text-gray-700">{ch.name}</span>
-                    </label>
-                    <button
-                      onClick={() => goToPractice(ch.id)}
-                      className="text-xs text-gray-400 underline underline-offset-2 hover:text-black"
-                    >
-                      Practice →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+          return (
+            <div
+              key={section.id}
+              className={`rounded-xl border p-4 transition-shadow ${
+                hasQuestions
+                  ? 'border-gray-200 shadow-md hover:shadow-lg'
+                  : 'border-gray-100 bg-gray-50 opacity-60'
+              }`}
+            >
+              <label className={`flex items-center gap-3 ${hasQuestions ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedSections.has(section.id)}
+                  onChange={() => toggleSection(section.id)}
+                  disabled={!hasQuestions}
+                  className="h-4 w-4 rounded border-gray-300 disabled:opacity-40"
+                />
+                <span className={`text-sm font-bold ${!hasQuestions ? 'text-gray-400' : ''}`}>{section.name}</span>
+                <span className="ml-auto text-xs text-gray-400">{section.examWeightPercent}% weight</span>
+              </label>
+
+              {!hasQuestions && (
+                <p className="mt-2 ml-7 text-xs text-gray-400">
+                  Coming soon — join our waitlist to get access to new modules.
+                </p>
+              )}
+
+              {hasQuestions && selectedSections.has(section.id) && (
+                <div className="mt-3 ml-7 space-y-2">
+                  {chapters.filter(c => c.sectionId === section.id).map(ch => {
+                    const chHasQuestions = (questionCounts[ch.id] ?? 0) > 0
+                    return (
+                      <div key={ch.id} className="flex items-center justify-between">
+                        <label className={`flex items-center gap-2 ${chHasQuestions ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                          <input
+                            type="checkbox"
+                            checked={selectedChapters.has(ch.id)}
+                            onChange={() => toggleChapter(ch.id)}
+                            disabled={!chHasQuestions}
+                            className="h-3.5 w-3.5 rounded border-gray-300 disabled:opacity-40"
+                          />
+                          <span className={`text-sm ${chHasQuestions ? 'text-gray-700' : 'text-gray-400'}`}>{ch.name}</span>
+                        </label>
+                        {chHasQuestions ? (
+                          <button
+                            onClick={() => goToPractice(ch.id)}
+                            className="text-xs text-gray-400 underline underline-offset-2 hover:text-black"
+                          >
+                            Practice →
+                          </button>
+                        ) : (
+                          <span className="text-xs text-gray-300">Coming soon</span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       {hasSelection && (
