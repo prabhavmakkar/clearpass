@@ -1,0 +1,21 @@
+subject_id,subject_name,section_id,section_name,section_weight,chapter_id,chapter_name,chapter_weight,sort_order
+ca-final-afm,CA Final — Advanced Financial Management,strategy-risk-capbudget,"Financial Policy, Risk Management & Capital Budgeting",12,ch01,Financial Policy and Corporate Strategy,4,1
+ca-final-afm,CA Final — Advanced Financial Management,strategy-risk-capbudget,"Financial Policy, Risk Management & Capital Budgeting",12,ch02,Risk Management,4,2
+ca-final-afm,CA Final — Advanced Financial Management,strategy-risk-capbudget,"Financial Policy, Risk Management & Capital Budgeting",12,ch03,Advanced Capital Budgeting Decisions,4,3
+ca-final-afm,CA Final — Advanced Financial Management,security-portfolio,"Security Analysis, Valuation & Portfolio Management",25,ch04,Security Analysis,5,4
+ca-final-afm,CA Final — Advanced Financial Management,security-portfolio,"Security Analysis, Valuation & Portfolio Management",25,ch05,Security Valuation,6,5
+ca-final-afm,CA Final — Advanced Financial Management,security-portfolio,"Security Analysis, Valuation & Portfolio Management",25,ch06,Portfolio Management,7,6
+ca-final-afm,CA Final — Advanced Financial Management,security-portfolio,"Security Analysis, Valuation & Portfolio Management",25,ch07,Securitization,4,7
+ca-final-afm,CA Final — Advanced Financial Management,security-portfolio,"Security Analysis, Valuation & Portfolio Management",25,ch08,Mutual Funds,3,8
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch09,Introduction to Forwards Futures and Options,4,9
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch10,Futures Market and Pricing of Forwards and Futures,5,10
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch11,Hedging using Futures,4,11
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch12,Options — Pricing and Strategies,5,12
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch13,Credit Derivatives Real Options and Swaps,4,13
+ca-final-afm,CA Final — Advanced Financial Management,derivatives,Derivatives Analysis and Valuation,25,ch14,Commodity Weather and Electricity Derivatives,3,14
+ca-final-afm,CA Final — Advanced Financial Management,forex-intl,"Foreign Exchange, International Finance & Interest Rate Risk",22,ch15,Foreign Exchange Exposure and Risk Management,8,15
+ca-final-afm,CA Final — Advanced Financial Management,forex-intl,"Foreign Exchange, International Finance & Interest Rate Risk",22,ch16,International Financial Management,8,16
+ca-final-afm,CA Final — Advanced Financial Management,forex-intl,"Foreign Exchange, International Finance & Interest Rate Risk",22,ch17,Interest Rate Risk Management,6,17
+ca-final-afm,CA Final — Advanced Financial Management,valuation-ma,Business Valuation and Mergers & Acquisitions,12,ch18,Business Valuation,6,18
+ca-final-afm,CA Final — Advanced Financial Management,valuation-ma,Business Valuation and Mergers & Acquisitions,12,ch19,Mergers Acquisitions and Corporate Restructuring,6,19
+ca-final-afm,CA Final — Advanced Financial Management,startup,Startup Finance,4,ch20,Startup Finance,4,20

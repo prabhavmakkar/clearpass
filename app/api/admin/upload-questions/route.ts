@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { parseQuestionsCsv } from '@/lib/csvParser'
 import { insertQuestion } from '@/lib/queries'
-import { nanoid } from 'nanoid'
+
+function stableQuestionId(chapterId: string, stem: string): string {
+  const hash = createHash('sha256').update(`${chapterId}\n${stem}`).digest('hex').slice(0, 12)
+  return `bank-${hash}`
+}
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get('x-admin-password')
@@ -20,7 +25,7 @@ export async function POST(request: Request) {
     let inserted = 0
     for (const q of questions) {
       await insertQuestion({
-        id: `bank-${nanoid(8)}`,
+        id: stableQuestionId(q.chapterId, q.stem),
         chapterId: q.chapterId,
         difficulty: q.difficulty,
         stem: q.stem,
