@@ -21,20 +21,22 @@ export function PracticeShell() {
   const [selected, setSelected] = useState<number | null>(null)
   const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [stats, setStats] = useState({ correct: 0, total: 0 })
   const [done, setDone] = useState(false)
 
   useEffect(() => {
     const chapter = searchParams.get('chapter')
-    if (!chapter) return
+    if (!chapter) { setError('No chapter selected'); setLoading(false); return }
     fetch(`/api/practice/questions?chapter=${chapter}`)
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json() })
       .then((data: { questions: ClientQuestion[]; answerKey: AnswerKey }) => {
         setPool(data.questions)
         setAnswerKey(data.answerKey)
         const first = selectNext(data.questions, INITIAL)
         setCurrent(first)
       })
+      .catch(() => setError('Failed to load practice questions'))
       .finally(() => setLoading(false))
   }, [searchParams])
 
@@ -69,6 +71,7 @@ export function PracticeShell() {
   }, [current, selected, state, pool, answerKey])
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" /></div>
+  if (error) return <div className="flex min-h-[60vh] items-center justify-center"><p className="text-sm text-red-500">{error}</p></div>
 
   if (done || !current) {
     const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0

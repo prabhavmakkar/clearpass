@@ -24,14 +24,20 @@ export function AssessmentShell() {
     if (!chapters) { setError('No chapters selected'); setLoading(false); return }
 
     fetch(`/api/assessment/questions?chapters=${chapters}`)
-      .then(r => { if (!r.ok) throw new Error('Failed to load'); return r.json() })
+      .then(async r => {
+        if (!r.ok) {
+          const body = await r.json().catch(() => null)
+          throw new Error(body?.error ?? `Server error (${r.status})`)
+        }
+        return r.json()
+      })
       .then(data => {
         setQuestions(data.questions)
         setSessionId(data.sessionId)
         setSessionToken(data.sessionToken)
         setAnswers(Array(data.questions.length).fill(null))
       })
-      .catch(() => setError('Failed to load questions'))
+      .catch((err: Error) => setError(err.message || 'Failed to load questions'))
       .finally(() => setLoading(false))
   }, [searchParams])
 

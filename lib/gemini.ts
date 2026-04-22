@@ -55,7 +55,12 @@ Return JSON only (no markdown, no preamble):
 }`
 
   const result = await model.generateContent(prompt)
-  const raw = JSON.parse(result.response.text()) as ReportOutput
+  let raw: ReportOutput
+  try {
+    raw = JSON.parse(result.response.text()) as ReportOutput
+  } catch {
+    throw new Error('Gemini returned invalid JSON')
+  }
 
   if (!Array.isArray(raw.studyPlan.priorityChapters)) {
     raw.studyPlan.priorityChapters = chapterScores

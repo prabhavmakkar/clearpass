@@ -26,9 +26,15 @@ export function AssessmentResults() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sessionToken: session.sessionToken, answers: session.answers }),
     })
-      .then(r => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json() })
+      .then(async r => {
+        if (!r.ok) {
+          const body = await r.json().catch(() => null)
+          throw new Error(body?.error ?? `Server error (${r.status})`)
+        }
+        return r.json()
+      })
       .then(data => setReport(data.report))
-      .catch(() => setError('Failed to generate report'))
+      .catch((err: Error) => setError(err.message || 'Failed to generate report'))
       .finally(() => setLoading(false))
   }, [router])
 

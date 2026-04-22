@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     if (questions.length === 0) return NextResponse.json({ error: 'No questions for this chapter' }, { status: 404 })
 
     const clientQuestions: ClientQuestion[] = questions.map(
-      ({ correctIndex: _c, explanation: _e, ...rest }) => rest
+      ({ correctIndex, explanation, ...rest }) => rest
     )
 
     const answerKey = Object.fromEntries(questions.map(q => [q.id, { correctIndex: q.correctIndex, explanation: q.explanation }]))

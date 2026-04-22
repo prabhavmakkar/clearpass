@@ -110,7 +110,7 @@ export async function GET(request: Request) {
     )
 
     const clientQuestions: ClientQuestion[] = selected.map(
-      ({ correctIndex: _c, explanation: _e, ...rest }) => rest
+      ({ correctIndex, explanation, ...rest }) => rest
     )
 
     return NextResponse.json({ sessionId, sessionToken, questions: clientQuestions })
