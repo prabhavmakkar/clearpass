@@ -86,6 +86,16 @@ export async function getQuestionsForChapters(chapterIds: string[]): Promise<Que
   return rows.map(mapQuestion)
 }
 
+export async function getQuestionsByIds(questionIds: string[]): Promise<Question[]> {
+  if (questionIds.length === 0) return []
+  const sql = getDb()
+  const rows = await sql`
+    SELECT id, chapter_id, difficulty, stem, option_a, option_b, option_c, option_d,
+           correct_option, explanation, icai_reference, source
+    FROM questions WHERE id = ANY(${questionIds}::text[])`
+  return rows.map(mapQuestion)
+}
+
 export async function getQuestionCountsByChapter(): Promise<Record<string, number>> {
   const sql = getDb()
   const rows = await sql`SELECT chapter_id, count(*)::int as count FROM questions GROUP BY chapter_id`

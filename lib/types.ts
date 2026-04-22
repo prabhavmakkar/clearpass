@@ -111,6 +111,17 @@ export interface StudyPlan {
   priorityChapters: string[]
 }
 
+export interface QuestionReview {
+  stem: string
+  options: [string, string, string, string]
+  userAnswer: number | null
+  correctIndex: number
+  isCorrect: boolean
+  explanation: string
+  chapterName: string
+  difficulty: Difficulty
+}
+
 export interface AssessmentReport {
   sessionId: string
   readinessScore: ReadinessScore
@@ -121,5 +132,6 @@ export interface AssessmentReport {
   sectionScores: SectionScore[]
   weaknessAnalysis: string
   studyPlan: StudyPlan
+  questionReview: QuestionReview[]
   generatedAt: string
 }

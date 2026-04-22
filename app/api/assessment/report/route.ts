@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { verifySession } from '@/lib/sessionToken'
 import { calculateChapterScores, getSectionScores, calculateReadinessScore, calculateOverallScore } from '@/lib/scoring'
-import { getChaptersByIds, getSections } from '@/lib/queries'
+import { getChaptersByIds, getSections, getQuestionsByIds } from '@/lib/queries'
 import { generateReport } from '@/lib/gemini'
-import type { AssessmentReport, StudyPlan } from '@/lib/types'
+import type { AssessmentReport, QuestionReview, StudyPlan } from '@/lib/types'
 
 const FALLBACK_PLAN: StudyPlan = {
   weekSummary: 'Focus on your weakest chapters this week.',
@@ -70,6 +70,24 @@ export async function POST(request: Request) {
     console.error('[assessment/report] Gemini failed:', err)
   }
 
+  const fullQuestions = await getQuestionsByIds(questions.map(q => q.id))
+  const questionMap = new Map(fullQuestions.map(q => [q.id, q]))
+  const chapterNameMap = new Map(relevantChapters.map(c => [c.id, c.name]))
+
+  const questionReview: QuestionReview[] = questions.map((q, i) => {
+    const full = questionMap.get(q.id)
+    return {
+      stem: full?.stem ?? '',
+      options: full?.options ?? ['', '', '', ''],
+      userAnswer: body.answers[i],
+      correctIndex: q.correctIndex,
+      isCorrect: body.answers[i] === q.correctIndex,
+      explanation: full?.explanation ?? '',
+      chapterName: chapterNameMap.get(q.chapterId) ?? '',
+      difficulty: full?.difficulty ?? 'medium',
+    }
+  })
+
   const report: AssessmentReport = {
     sessionId,
     readinessScore,
@@ -80,6 +98,7 @@ export async function POST(request: Request) {
     sectionScores,
     weaknessAnalysis,
     studyPlan,
+    questionReview,
     generatedAt: new Date().toISOString(),
   }
 

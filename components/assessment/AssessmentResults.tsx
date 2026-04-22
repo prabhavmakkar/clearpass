@@ -6,6 +6,7 @@ import { NodeBreakdown } from '@/components/results/NodeBreakdown'
 import { SectionBreakdown } from '@/components/results/SectionBreakdown'
 import { WeaknessAnalysis } from '@/components/results/WeaknessAnalysis'
 import { StudyPlanCard } from '@/components/results/StudyPlanCard'
+import { AnswerReview } from '@/components/results/AnswerReview'
 import type { AssessmentSession, AssessmentReport } from '@/lib/types'
 
 export function AssessmentResults() {
@@ -13,6 +14,7 @@ export function AssessmentResults() {
   const [report, setReport] = useState<AssessmentReport | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showReview, setShowReview] = useState(false)
 
   useEffect(() => {
     const raw = sessionStorage.getItem('clearpass_assessment')
@@ -49,6 +51,18 @@ export function AssessmentResults() {
         totalCount={report.totalCount} readinessScore={report.readinessScore} />
       <SectionBreakdown sectionScores={report.sectionScores} />
       <NodeBreakdown chapterScores={report.chapterScores} />
+
+      <div className="my-8 text-center">
+        <button
+          onClick={() => setShowReview(v => !v)}
+          className="rounded-xl border border-gray-200 px-8 py-3 text-sm font-bold transition-colors hover:border-gray-400"
+        >
+          {showReview ? 'Hide Answer Review' : `Review Your Answers (${report.totalCount - report.correctCount} wrong)`}
+        </button>
+      </div>
+
+      {showReview && <AnswerReview questions={report.questionReview} />}
+
       <WeaknessAnalysis weaknessAnalysis={report.weaknessAnalysis} />
       <StudyPlanCard studyPlan={report.studyPlan} />
       <div className="flex gap-4 justify-center">
