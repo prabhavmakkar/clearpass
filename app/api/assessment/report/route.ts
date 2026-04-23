@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 import { verifySession } from '@/lib/sessionToken'
 import { calculateChapterScores, getSectionScores, calculateReadinessScore, calculateOverallScore } from '@/lib/scoring'
-import { getChaptersByIds, getSections, getQuestionsByIds } from '@/lib/queries'
+import { getChaptersByIds, getSections, getQuestionsByIds, insertAttempt } from '@/lib/queries'
 import { generateReport } from '@/lib/gemini'
+import { nanoid } from 'nanoid'
 import type { AssessmentReport, QuestionReview, StudyPlan } from '@/lib/types'
 
 const FALLBACK_PLAN: StudyPlan = {
@@ -88,8 +90,10 @@ export async function POST(request: Request) {
     }
   })
 
+  const attemptId = nanoid(12)
   const report: AssessmentReport = {
     sessionId,
+    attemptId,
     readinessScore,
     overallScore: overall.percentage,
     correctCount: overall.correct,
@@ -100,6 +104,31 @@ export async function POST(request: Request) {
     studyPlan,
     questionReview,
     generatedAt: new Date().toISOString(),
+  }
+
+  const session = await auth()
+  if (session?.user?.id) {
+    try {
+      await insertAttempt({
+        id: attemptId,
+        userId: Number(session.user.id),
+        subjectId,
+        scope: { sectionIds: Array.from(sectionIds), chapterIds },
+        overallScore: overall.percentage,
+        readinessScore: readinessScore.score,
+        readinessTier: readinessScore.tier,
+        correctCount: overall.correct,
+        totalCount: overall.total,
+        chapterScores,
+        sectionScores,
+        questionReview,
+        weaknessAnalysis,
+        studyPlan: studyPlan as unknown as Record<string, unknown>,
+        createdAt: report.generatedAt,
+      })
+    } catch (err) {
+      console.error('[assessment/report] Failed to persist attempt:', err)
+    }
   }
 
   return NextResponse.json({ report })

@@ -104,6 +104,86 @@ export async function getQuestionCountsByChapter(): Promise<Record<string, numbe
   return result
 }
 
+// ── Assessment Attempts ──────────────────────────────────────────────
+
+export interface AttemptRow {
+  id: string
+  userId: number
+  subjectId: string
+  scope: Record<string, unknown>
+  overallScore: number
+  readinessScore: number
+  readinessTier: string
+  correctCount: number
+  totalCount: number
+  chapterScores: unknown[]
+  sectionScores: unknown[]
+  questionReview: unknown[]
+  weaknessAnalysis: string
+  studyPlan: Record<string, unknown>
+  createdAt: string
+}
+
+export async function insertAttempt(a: AttemptRow): Promise<void> {
+  const sql = getDb()
+  await sql`INSERT INTO assessment_attempts
+    (id, user_id, subject_id, scope, overall_score, readiness_score, readiness_tier,
+     correct_count, total_count, chapter_scores, section_scores, question_review,
+     weakness_analysis, study_plan)
+    VALUES (${a.id}, ${a.userId}, ${a.subjectId}, ${JSON.stringify(a.scope)},
+      ${a.overallScore}, ${a.readinessScore}, ${a.readinessTier},
+      ${a.correctCount}, ${a.totalCount}, ${JSON.stringify(a.chapterScores)},
+      ${JSON.stringify(a.sectionScores)}, ${JSON.stringify(a.questionReview)},
+      ${a.weaknessAnalysis}, ${JSON.stringify(a.studyPlan)})`
+}
+
+export async function getAttemptsByUser(userId: number): Promise<{
+  id: string; subjectId: string; overallScore: number; readinessScore: number;
+  readinessTier: string; correctCount: number; totalCount: number; createdAt: string;
+}[]> {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT id, subject_id, overall_score, readiness_score, readiness_tier,
+           correct_count, total_count, created_at
+    FROM assessment_attempts WHERE user_id = ${userId}
+    ORDER BY created_at DESC LIMIT 50`
+  return rows.map(r => ({
+    id: r.id as string,
+    subjectId: r.subject_id as string,
+    overallScore: Number(r.overall_score),
+    readinessScore: Number(r.readiness_score),
+    readinessTier: r.readiness_tier as string,
+    correctCount: r.correct_count as number,
+    totalCount: r.total_count as number,
+    createdAt: (r.created_at as Date).toISOString(),
+  }))
+}
+
+export async function getAttemptById(id: string, userId: number) {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT * FROM assessment_attempts WHERE id = ${id} AND user_id = ${userId}`
+  if (rows.length === 0) return null
+  const r = rows[0]
+  return {
+    id: r.id as string,
+    userId: r.user_id as number,
+    subjectId: r.subject_id as string,
+    scope: r.scope as Record<string, unknown>,
+    overallScore: Number(r.overall_score),
+    readinessScore: Number(r.readiness_score),
+    readinessTier: r.readiness_tier as string,
+    correctCount: r.correct_count as number,
+    totalCount: r.total_count as number,
+    chapterScores: r.chapter_scores as unknown[],
+    sectionScores: r.section_scores as unknown[],
+    questionReview: r.question_review as unknown[],
+    weaknessAnalysis: r.weakness_analysis as string,
+    studyPlan: r.study_plan as Record<string, unknown>,
+    createdAt: (r.created_at as Date).toISOString(),
+  }
+}
+
 // ── Writes (admin) ────────────────────────────────────────────────────
 
 export async function insertSubject(id: string, name: string): Promise<void> {

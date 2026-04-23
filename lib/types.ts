@@ -124,6 +124,7 @@ export interface QuestionReview {
 
 export interface AssessmentReport {
   sessionId: string
+  attemptId?: string
   readinessScore: ReadinessScore
   overallScore: number
   correctCount: number
