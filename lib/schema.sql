@@ -104,3 +104,14 @@ CREATE TABLE IF NOT EXISTS assessment_attempts (
 
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON assessment_attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_created ON assessment_attempts(user_id, created_at DESC);
+
+-- ── Telegram Linking ─────────────────────────────────────────────────
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_id BIGINT UNIQUE;
+
+CREATE TABLE IF NOT EXISTS telegram_link_codes (
+  code       TEXT PRIMARY KEY,
+  user_id    INTEGER NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

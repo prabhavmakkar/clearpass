@@ -184,6 +184,34 @@ export async function getAttemptById(id: string, userId: number) {
   }
 }
 
+// ── Telegram Linking ─────────────────────────────────────────────────
+
+export async function createTelegramLinkCode(userId: number, code: string): Promise<void> {
+  const sql = getDb()
+  await sql`INSERT INTO telegram_link_codes (code, user_id, expires_at)
+    VALUES (${code}, ${userId}, now() + interval '10 minutes')
+    ON CONFLICT (code) DO UPDATE SET user_id = EXCLUDED.user_id, expires_at = EXCLUDED.expires_at`
+}
+
+export async function consumeTelegramLinkCode(code: string): Promise<number | null> {
+  const sql = getDb()
+  const rows = await sql`DELETE FROM telegram_link_codes
+    WHERE code = ${code} AND expires_at > now()
+    RETURNING user_id`
+  return rows.length > 0 ? (rows[0].user_id as number) : null
+}
+
+export async function linkTelegramId(userId: number, telegramId: number): Promise<void> {
+  const sql = getDb()
+  await sql`UPDATE users SET telegram_id = ${telegramId} WHERE id = ${userId}`
+}
+
+export async function getUserByTelegramId(telegramId: number): Promise<{ id: number; name: string } | null> {
+  const sql = getDb()
+  const rows = await sql`SELECT id, name FROM users WHERE telegram_id = ${telegramId}`
+  return rows.length > 0 ? { id: rows[0].id as number, name: rows[0].name as string } : null
+}
+
 // ── Writes (admin) ────────────────────────────────────────────────────
 
 export async function insertSubject(id: string, name: string): Promise<void> {

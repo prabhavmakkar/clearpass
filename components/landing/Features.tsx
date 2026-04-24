@@ -27,8 +27,14 @@ const features: Omit<Feature, 'delay'>[] = [
   {
     num: '03',
     title: 'Adaptive MCQ Practice',
-    description: 'Topic-by-topic adaptive practice that adjusts to your level in real time. Start with Audit — the most rote-heavy subject — and build genuine competence, not surface memory.',
-    tag: 'STARTING WITH AUDIT',
+    description: 'Topic-by-topic adaptive practice that adjusts to your level in real time. Pick your subject, section, and chapter — then practice at your own pace.',
+    tag: 'WEB + TELEGRAM',
+  },
+  {
+    num: '04',
+    title: 'Practice on Telegram',
+    description: 'Don\'t want to open a browser? Practice MCQs directly in Telegram. Pick your topic, answer questions, get instant feedback — all from your phone.',
+    tag: 'TELEGRAM BOT',
   },
 ]
 
@@ -89,7 +95,7 @@ export default function Features() {
             key={f.num}
             {...f}
             delay={i * 0.1}
-            href={f.num === '01' || f.num === '03' ? '/select' : undefined}
+            href={f.num === '01' || f.num === '03' ? '/select' : f.num === '04' ? 'https://t.me/ClearPassBot' : undefined}
           />
         ))}
       </div>
