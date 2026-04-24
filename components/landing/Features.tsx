@@ -95,7 +95,7 @@ export default function Features() {
             key={f.num}
             {...f}
             delay={i * 0.1}
-            href={f.num === '01' || f.num === '03' ? '/select' : f.num === '04' ? 'https://t.me/ClearPassBot' : undefined}
+            href={f.num === '01' || f.num === '03' ? '/select' : f.num === '04' ? 'https://t.me/ClearpassCAbot' : undefined}
           />
         ))}
       </div>

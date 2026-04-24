@@ -49,7 +49,7 @@ export default async function LinkTelegramPage({ searchParams }: { searchParams:
           Your Telegram account is now connected to ClearPass.
           Go back to Telegram and send /practice to start.
         </p>
-        <a href="https://t.me/ClearPassBot" className="rounded-xl bg-black px-8 py-3 text-sm font-bold text-white hover:opacity-80">
+        <a href="https://t.me/ClearpassCAbot" className="rounded-xl bg-black px-8 py-3 text-sm font-bold text-white hover:opacity-80">
           Back to Telegram
         </a>
       </div>

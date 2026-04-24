@@ -39,7 +39,7 @@ export default function Hero() {
             Get Started Free →
           </a>
           <a
-            href="https://t.me/ClearPassBot"
+            href="https://t.me/ClearpassCAbot"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-lg border border-gray-300 px-7 py-3.5 text-sm font-semibold text-gray-700 transition-colors hover:border-gray-500"

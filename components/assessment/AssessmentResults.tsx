@@ -69,7 +69,7 @@ export function AssessmentResults() {
         <p className="mb-2 text-sm font-semibold">Keep practicing on the go</p>
         <p className="mb-3 text-xs text-gray-500">Practice MCQs directly in Telegram — pick your topic and get instant feedback.</p>
         <a
-          href="https://t.me/ClearPassBot"
+          href="https://t.me/ClearpassCAbot"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-lg bg-[#2AABEE] px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
