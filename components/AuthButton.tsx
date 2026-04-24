@@ -19,17 +19,11 @@ export function AuthButton() {
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <a href="/profile" className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5 transition-colors hover:border-gray-400">
       {session.user?.image && (
-        <img src={session.user.image} alt="" className="h-7 w-7 rounded-full" referrerPolicy="no-referrer" />
+        <img src={session.user.image} alt="" className="h-6 w-6 rounded-full" referrerPolicy="no-referrer" />
       )}
-      <span className="hidden text-sm font-medium sm:inline">{session.user?.name?.split(' ')[0]}</span>
-      <button
-        onClick={() => signOut({ callbackUrl: '/' })}
-        className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium transition-colors hover:border-gray-400"
-      >
-        Sign out
-      </button>
-    </div>
+      <span className="text-xs font-medium">{session.user?.name?.split(' ')[0]}</span>
+    </a>
   )
 }
