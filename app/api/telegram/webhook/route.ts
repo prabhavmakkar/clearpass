@@ -16,7 +16,7 @@ import type { Question } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 const OPTION_LABELS = ['A', 'B', 'C', 'D'] as const
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://clearpass.snpventures.in'
+const APP_URL = process.env.AUTH_URL ?? 'https://clearpass.snpventures.in'
 
 let _bot: Bot | null = null
 
