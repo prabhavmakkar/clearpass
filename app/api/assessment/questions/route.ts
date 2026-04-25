@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     getUserPurchasedChapterIds(Number(session.user.id)),
   ])
   const accessibleSet = new Set([...freeIds, ...purchasedIds])
-  const blocked = chapterIds.filter(id => id.startsWith('ca-final-afm/') && !accessibleSet.has(id))
+  const blocked = chapterIds.filter(id => !accessibleSet.has(id))
   if (blocked.length > 0) {
     return NextResponse.json({ error: 'Some chapters require purchase' }, { status: 403 })
   }

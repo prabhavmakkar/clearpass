@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   const freeIds = await getFreeChapterIds()
-  if (!freeIds.includes(chapterId) && chapterId.startsWith('ca-final-afm/')) {
+  if (!freeIds.includes(chapterId)) {
     const purchased = await getUserPurchasedChapterIds(Number(session.user.id))
     if (!purchased.includes(chapterId)) {
       return NextResponse.json({ error: 'Chapter not purchased' }, { status: 403 })

@@ -218,7 +218,7 @@ function setupHandlers(bot: Bot) {
     }
 
     const freeIds = await getFreeChapterIds()
-    if (!freeIds.includes(chapterId) && chapterId.startsWith('ca-final-afm/')) {
+    if (!freeIds.includes(chapterId)) {
       const purchased = await getUserPurchasedChapterIds(user.id)
       if (!purchased.includes(chapterId)) {
         await ctx.answerCallbackQuery()

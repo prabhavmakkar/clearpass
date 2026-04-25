@@ -87,7 +87,7 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 **Free chapters**: All chapters in the "Derivatives Analysis and Valuation" section (identified by `s.name ILIKE '%Derivatives%'`).
 
-**Purchasable chapters**: Only `ca-final-afm/` prefixed chapters that are not free and have questions. Audit chapters (`ca-inter-audit/`) are not purchasable.
+**Purchasable chapters**: Any chapter that is not free and has questions.
 
 **API routes:**
 - `POST /api/payments/create-order` — creates Razorpay order, stores pending purchase in `purchases` table

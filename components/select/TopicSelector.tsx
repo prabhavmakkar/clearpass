@@ -39,7 +39,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
   }
 
   function isPurchasable(chId: string): boolean {
-    return !freeSet.has(chId) && !purchasedSet.has(chId) && (questionCounts[chId] ?? 0) > 0 && chId.startsWith('ca-final-afm/')
+    return !freeSet.has(chId) && !purchasedSet.has(chId) && (questionCounts[chId] ?? 0) > 0
   }
 
   const sectionHasQuestions = useMemo(() => {

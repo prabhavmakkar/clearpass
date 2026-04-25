@@ -35,10 +35,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'This chapter is free' }, { status: 400 })
   }
 
-  if (!chapterId.startsWith('ca-final-afm/')) {
-    return NextResponse.json({ error: 'This chapter is not available for purchase' }, { status: 400 })
-  }
-
   const alreadyPurchased = await hasUserPurchasedChapter(Number(session.user.id), chapterId)
   if (alreadyPurchased) {
     return NextResponse.json({ error: 'Already purchased' }, { status: 400 })
