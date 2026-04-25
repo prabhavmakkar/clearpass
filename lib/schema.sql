@@ -126,3 +126,34 @@ CREATE TABLE IF NOT EXISTS feedback (
   comment     TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ── Payments ────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS purchases (
+  id                  TEXT PRIMARY KEY,
+  user_id             INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  chapter_id          TEXT NOT NULL,
+  razorpay_order_id   TEXT,
+  razorpay_payment_id TEXT,
+  razorpay_signature  TEXT,
+  amount              INTEGER NOT NULL,
+  original_amount     INTEGER NOT NULL,
+  coupon_code         TEXT,
+  status              TEXT NOT NULL DEFAULT 'pending',
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_purchases_user ON purchases(user_id, status);
+
+CREATE TABLE IF NOT EXISTS coupons (
+  code             TEXT PRIMARY KEY,
+  discount_percent INTEGER NOT NULL CHECK (discount_percent BETWEEN 1 AND 100),
+  max_uses         INTEGER,
+  used_count       INTEGER NOT NULL DEFAULT 0,
+  active           BOOLEAN NOT NULL DEFAULT true,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO coupons (code, discount_percent, active)
+  VALUES ('STUDY70', 70, true)
+  ON CONFLICT (code) DO NOTHING;

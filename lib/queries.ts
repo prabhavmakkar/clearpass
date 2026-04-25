@@ -220,6 +220,63 @@ export async function insertFeedback(userId: number, attemptId: string | null, r
     VALUES (${userId}, ${attemptId}, ${rating}, ${comment})`
 }
 
+// ── Purchases & Coupons ─────────────────────────────────────────────
+
+export async function getUserPurchasedChapterIds(userId: number): Promise<string[]> {
+  const sql = getDb()
+  const rows = await sql`SELECT chapter_id FROM purchases WHERE user_id = ${userId} AND status = 'paid'`
+  return rows.map(r => r.chapter_id as string)
+}
+
+export async function hasUserPurchasedChapter(userId: number, chapterId: string): Promise<boolean> {
+  const sql = getDb()
+  const rows = await sql`SELECT 1 FROM purchases WHERE user_id = ${userId} AND chapter_id = ${chapterId} AND status = 'paid' LIMIT 1`
+  return rows.length > 0
+}
+
+export async function createPurchase(p: {
+  id: string; userId: number; chapterId: string; razorpayOrderId: string;
+  amount: number; originalAmount: number; couponCode: string | null;
+}): Promise<void> {
+  const sql = getDb()
+  await sql`INSERT INTO purchases (id, user_id, chapter_id, razorpay_order_id, amount, original_amount, coupon_code, status)
+    VALUES (${p.id}, ${p.userId}, ${p.chapterId}, ${p.razorpayOrderId}, ${p.amount}, ${p.originalAmount}, ${p.couponCode}, 'pending')`
+}
+
+export async function markPurchasePaid(purchaseId: string, paymentId: string, signature: string): Promise<void> {
+  const sql = getDb()
+  await sql`UPDATE purchases SET status = 'paid', razorpay_payment_id = ${paymentId}, razorpay_signature = ${signature}
+    WHERE id = ${purchaseId} AND status = 'pending'`
+}
+
+export async function getCoupon(code: string): Promise<{ code: string; discountPercent: number; maxUses: number | null; usedCount: number; active: boolean } | null> {
+  const sql = getDb()
+  const rows = await sql`SELECT code, discount_percent, max_uses, used_count, active FROM coupons WHERE code = ${code.toUpperCase()}`
+  if (rows.length === 0) return null
+  const r = rows[0]
+  return {
+    code: r.code as string,
+    discountPercent: r.discount_percent as number,
+    maxUses: r.max_uses as number | null,
+    usedCount: r.used_count as number,
+    active: r.active as boolean,
+  }
+}
+
+export async function incrementCouponUsage(code: string): Promise<void> {
+  const sql = getDb()
+  await sql`UPDATE coupons SET used_count = used_count + 1 WHERE code = ${code.toUpperCase()}`
+}
+
+export async function getFreeChapterIds(): Promise<string[]> {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT c.id FROM chapters c
+    JOIN sections s ON s.id = c.section_id
+    WHERE s.name ILIKE '%Derivatives%'`
+  return rows.map(r => r.id as string)
+}
+
 // ── Writes (admin) ────────────────────────────────────────────────────
 
 export async function insertSubject(id: string, name: string): Promise<void> {

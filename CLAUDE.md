@@ -79,7 +79,36 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 **Empty content**: Sections/chapters without questions show "Stay Tuned!" messages.
 
-### 6. Feedback System
+**Purchase gating**: Telegram bot checks if user has purchased a chapter before serving questions. Free chapters (Derivatives) bypass the check. Unpurchased paid chapters show a "visit clearpass.snpventures.in/select to unlock" message.
+
+### 6. Payments (Razorpay)
+
+**Base price**: ₹999/chapter. Coupons can reduce this (e.g., STUDY70 = 70% off → ₹299).
+
+**Free chapters**: All chapters in the "Derivatives Analysis and Valuation" section (identified by `s.name ILIKE '%Derivatives%'`).
+
+**Purchasable chapters**: Only `ca-final-afm/` prefixed chapters that are not free and have questions. Audit chapters (`ca-inter-audit/`) are not purchasable.
+
+**API routes:**
+- `POST /api/payments/create-order` — creates Razorpay order, stores pending purchase in `purchases` table
+- `POST /api/payments/verify` — HMAC-SHA256 signature verification, marks purchase as paid
+- `POST /api/payments/validate-coupon` — validates coupon code, returns discount info
+
+**Frontend flow** (`TopicSelector`):
+1. User clicks "Unlock" on a locked chapter
+2. Inline panel shows price, coupon input, "Apply" button
+3. Applying coupon → calls validate-coupon → shows discounted price
+4. "Pay" button → calls create-order → opens Razorpay checkout modal → on success calls verify → `router.refresh()`
+
+**Purchase gating enforced at**:
+- `GET /api/practice/questions` — checks purchase before serving questions
+- `GET /api/assessment/questions` — checks all requested chapters are accessible
+- Telegram bot `ch:` callback — checks purchase before starting practice
+- `TopicSelector` UI — locked chapters can't be selected for assessment
+
+**Coupons table**: `code` (PK), `discount_percent`, `max_uses` (null = unlimited), `used_count`, `active`
+
+### 7. Feedback System
 - `FeedbackCard` component shown on results page after assessment completion
 - 1-5 star rating + optional comment
 - `POST /api/feedback` — stores in `feedback` table
@@ -119,7 +148,8 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 | `assessment_attempts` | Saved assessment results (JSONB for scores, reviews, study plans) |
 | `telegram_link_codes` | Temporary codes for Telegram account linking (10 min expiry) |
 | `feedback` | User ratings and comments (1-5 stars) |
-| `purchases` | Payment records (planned — not yet created) |
+| `purchases` | Payment records (id, user_id, chapter_id, razorpay IDs, amount, coupon, status) |
+| `coupons` | Discount codes (code, discount_percent, max_uses, used_count, active) |
 
 ## Environment Variables
 
@@ -137,12 +167,9 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 | `NEXT_PUBLIC_APP_URL` | Build-time | Public app URL (used by client components) |
 | `NEXT_PUBLIC_APPS_SCRIPT_URL` | Build-time | Google Apps Script endpoint |
 
-### Planned
-| Variable | Purpose |
-|----------|---------|
-| `RAZORPAY_KEY_ID` | Razorpay server-side key |
-| `RAZORPAY_KEY_SECRET` | Razorpay server-side secret |
-| `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Razorpay client-side key (for checkout modal) |
+| `RAZORPAY_KEY_ID` | Server | Razorpay server-side key |
+| `RAZORPAY_KEY_SECRET` | Server | Razorpay server-side secret |
+| `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Build-time | Razorpay client-side key (for checkout modal) |
 
 ## Key Gotchas
 

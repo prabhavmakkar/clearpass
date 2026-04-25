@@ -1,10 +1,12 @@
-import { getSubjects, getSections, getChapters, getQuestionCountsByChapter } from '@/lib/queries'
+import { auth } from '@/lib/auth'
+import { getSubjects, getSections, getChapters, getQuestionCountsByChapter, getFreeChapterIds, getUserPurchasedChapterIds } from '@/lib/queries'
 import { TopicSelector } from '@/components/select/TopicSelector'
 import { AppNav } from '@/components/AppNav'
 
 export const dynamic = 'force-dynamic'
 
 export default async function SelectPage() {
+  const session = await auth()
   const subjects = await getSubjects()
   if (subjects.length === 0) {
     return (
@@ -21,15 +23,25 @@ export default async function SelectPage() {
     allSections.push(...secs)
     allSectionIds.push(...secs.map(sec => sec.id))
   }
-  const [allChapters, questionCounts] = await Promise.all([
+
+  const [allChapters, questionCounts, freeChapterIds, purchasedChapterIds] = await Promise.all([
     allSectionIds.length > 0 ? getChapters(allSectionIds) : Promise.resolve([]),
     getQuestionCountsByChapter(),
+    getFreeChapterIds(),
+    session?.user?.id ? getUserPurchasedChapterIds(Number(session.user.id)) : Promise.resolve([]),
   ])
 
   return (
     <main className="min-h-screen bg-white">
       <AppNav />
-      <TopicSelector subjects={subjects} sections={allSections} chapters={allChapters} questionCounts={questionCounts} />
+      <TopicSelector
+        subjects={subjects}
+        sections={allSections}
+        chapters={allChapters}
+        questionCounts={questionCounts}
+        freeChapterIds={freeChapterIds}
+        purchasedChapterIds={purchasedChapterIds}
+      />
     </main>
   )
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getQuestionsForChapters, getChaptersByIds } from '@/lib/queries'
+import { auth } from '@/lib/auth'
+import { getQuestionsForChapters, getChaptersByIds, getFreeChapterIds, getUserPurchasedChapterIds } from '@/lib/queries'
 import { signSession } from '@/lib/sessionToken'
 import { nanoid } from 'nanoid'
 import type { ClientQuestion, Question, Chapter } from '@/lib/types'
@@ -68,6 +69,21 @@ export async function GET(request: Request) {
 
   if (chapterIds.length === 0) {
     return NextResponse.json({ error: 'chapters param required' }, { status: 400 })
+  }
+
+  const session = await auth()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const [freeIds, purchasedIds] = await Promise.all([
+    getFreeChapterIds(),
+    getUserPurchasedChapterIds(Number(session.user.id)),
+  ])
+  const accessibleSet = new Set([...freeIds, ...purchasedIds])
+  const blocked = chapterIds.filter(id => id.startsWith('ca-final-afm/') && !accessibleSet.has(id))
+  if (blocked.length > 0) {
+    return NextResponse.json({ error: 'Some chapters require purchase' }, { status: 403 })
   }
 
   try {

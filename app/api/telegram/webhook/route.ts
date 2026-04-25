@@ -10,6 +10,8 @@ import {
   getQuestionsForChapters,
   getQuestionsByIds,
   getAttemptsByUser,
+  getFreeChapterIds,
+  getUserPurchasedChapterIds,
 } from '@/lib/queries'
 import type { Question } from '@/lib/types'
 
@@ -208,6 +210,28 @@ function setupHandlers(bot: Bot) {
 
   bot.callbackQuery(/^ch:(.+)$/, async (ctx) => {
     const chapterId = ctx.match![1]
+
+    const user = await getUserByTelegramId(ctx.from!.id)
+    if (!user) {
+      await ctx.answerCallbackQuery({ text: 'Please link your account first. Send /start' })
+      return
+    }
+
+    const freeIds = await getFreeChapterIds()
+    if (!freeIds.includes(chapterId) && chapterId.startsWith('ca-final-afm/')) {
+      const purchased = await getUserPurchasedChapterIds(user.id)
+      if (!purchased.includes(chapterId)) {
+        await ctx.answerCallbackQuery()
+        await ctx.editMessageText(
+          '🔒 *This chapter requires purchase*\n\n' +
+          'Unlock this chapter for ~₹999~ ₹299 (use code STUDY70)\n' +
+          'Visit clearpass.snpventures.in/select to unlock.',
+          { parse_mode: 'Markdown' }
+        )
+        return
+      }
+    }
+
     const questions = await getQuestionsForChapters([chapterId])
 
     if (questions.length === 0) {
