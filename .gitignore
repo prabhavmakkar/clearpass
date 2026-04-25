@@ -25,3 +25,4 @@ src/**/*.js
 **/.DS_Store
 .playwright-mcp/
 tsconfig.tsbuildinfo
+*.png

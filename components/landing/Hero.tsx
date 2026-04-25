@@ -20,8 +20,8 @@ export default function Hero() {
     <section className="mx-auto max-w-5xl px-6 pb-20 pt-24">
       <motion.div {...reveal}>
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-1.5 text-xs text-gray-500">
-          <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-          Free chapter available — no card needed
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+          Live now: Derivatives &amp; Valuation (CA Finals) — more chapters dropping soon
         </div>
         <h1 className="mb-6 text-5xl font-black leading-[1.05] tracking-tight md:text-7xl">
           CA prep, finally{' '}

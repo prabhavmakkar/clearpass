@@ -212,6 +212,14 @@ export async function getUserByTelegramId(telegramId: number): Promise<{ id: num
   return rows.length > 0 ? { id: rows[0].id as number, name: rows[0].name as string } : null
 }
 
+// ── Feedback ─────────────────────────────────────────────────────────
+
+export async function insertFeedback(userId: number, attemptId: string | null, rating: number, comment: string | null): Promise<void> {
+  const sql = getDb()
+  await sql`INSERT INTO feedback (user_id, attempt_id, rating, comment)
+    VALUES (${userId}, ${attemptId}, ${rating}, ${comment})`
+}
+
 // ── Writes (admin) ────────────────────────────────────────────────────
 
 export async function insertSubject(id: string, name: string): Promise<void> {

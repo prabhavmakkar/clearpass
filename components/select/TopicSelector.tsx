@@ -80,7 +80,11 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts }: 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12">
       <h1 className="mb-2 text-3xl font-black">Choose Your Scope</h1>
-      <p className="mb-8 text-sm text-gray-500">Select sections and chapters, then take an assessment or practice.</p>
+      <p className="mb-4 text-sm text-gray-500">Select sections and chapters, then take an assessment or practice.</p>
+      <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
+        <p className="text-sm font-semibold text-amber-900">Derivatives &amp; Valuation is live now</p>
+        <p className="mt-0.5 text-xs text-amber-700">More chapters are being added — we'll notify you when new ones unlock.</p>
+      </div>
 
       {subjects.length > 1 && (
         <div className="mb-6">
@@ -122,7 +126,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts }: 
 
               {!hasQuestions && (
                 <p className="mt-2 ml-7 text-xs text-gray-400">
-                  Coming soon — join our waitlist to get access to new modules.
+                  Coming soon — stay tuned for new chapters.
                 </p>
               )}
 

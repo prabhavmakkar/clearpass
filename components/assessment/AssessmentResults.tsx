@@ -7,6 +7,7 @@ import { SectionBreakdown } from '@/components/results/SectionBreakdown'
 import { WeaknessAnalysis } from '@/components/results/WeaknessAnalysis'
 import { StudyPlanCard } from '@/components/results/StudyPlanCard'
 import { AnswerReview } from '@/components/results/AnswerReview'
+import { FeedbackCard } from '@/components/assessment/FeedbackCard'
 import type { AssessmentSession, AssessmentReport } from '@/lib/types'
 
 export function AssessmentResults() {
@@ -65,6 +66,7 @@ export function AssessmentResults() {
 
       <WeaknessAnalysis weaknessAnalysis={report.weaknessAnalysis} />
       <StudyPlanCard studyPlan={report.studyPlan} />
+      <FeedbackCard attemptId={report.attemptId} />
       <div className="my-8 rounded-xl border border-blue-100 bg-blue-50/40 p-5 text-center">
         <p className="mb-2 text-sm font-semibold">Keep practicing on the go</p>
         <p className="mb-3 text-xs text-gray-500">Practice MCQs directly in Telegram — pick your topic and get instant feedback.</p>

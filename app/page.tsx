@@ -3,7 +3,6 @@ import Hero from '@/components/landing/Hero'
 import Story from '@/components/landing/Story'
 import Features from '@/components/landing/Features'
 import Waitlist from '@/components/landing/Waitlist'
-import Footer from '@/components/landing/Footer'
 
 export default function HomePage() {
   return (
@@ -16,7 +15,6 @@ export default function HomePage() {
       <Features />
       <hr className="mx-auto max-w-5xl border-gray-100" />
       <Waitlist />
-      <Footer />
     </div>
   )
 }

@@ -59,21 +59,31 @@ function setupHandlers(bot: Bot) {
   // ── /start — account linking ───────────────────────────────────────
 
   bot.command('start', async (ctx) => {
+    const commandGuide =
+      '📋 *Here\'s what you can do:*\n\n' +
+      '/practice — Pick a subject, section & chapter to practice MCQs\n' +
+      '/stats — View your test history & scores\n' +
+      '/stop — End current practice session\n' +
+      '/help — Show all commands'
+
     const user = await getUserByTelegramId(ctx.from!.id)
     if (user) {
       await ctx.reply(
-        `Welcome back, ${user.name}! 👋\n\nSend /practice to start practicing.\nSend /help for all commands.`
+        `👋 *Welcome back, ${escapeMarkdown(user.name)}!*\n\n` +
+        commandGuide +
+        '\n\nReady to practice? Send /practice to begin.',
+        { parse_mode: 'Markdown' }
       )
       return
     }
 
-    const code = nanoid(20)
-    // Create a temporary link code — user will auth on web and link will complete
     await ctx.reply(
-      '👋 Welcome to ClearPass Practice Bot!\n\n' +
-      'To get started, link your ClearPass account.\n' +
-      'Tap the button below to sign in and connect.',
+      '👋 *Welcome to ClearPass Practice Bot!*\n\n' +
+      'ClearPass helps CA students find their weak spots and improve through targeted practice.\n\n' +
+      commandGuide +
+      '\n\n🔗 *First, link your ClearPass account* to get started.\nTap the button below to sign in and connect.',
       {
+        parse_mode: 'Markdown',
         reply_markup: new InlineKeyboard().url(
           '🔗 Link Account',
           `${APP_URL}/sign-in?callbackUrl=${encodeURIComponent(`/api/telegram/link?tgId=${ctx.from!.id}`)}`
@@ -125,7 +135,11 @@ function setupHandlers(bot: Bot) {
     const sections = await getSections(subjectId)
 
     if (sections.length === 0) {
-      await ctx.answerCallbackQuery({ text: 'No sections available' })
+      await ctx.answerCallbackQuery()
+      await ctx.editMessageText(
+        '📚 *Stay Tuned!*\n\nSections for this subject are coming soon.\nSend /practice to try another subject.',
+        { parse_mode: 'Markdown' }
+      )
       return
     }
 
@@ -158,7 +172,11 @@ function setupHandlers(bot: Bot) {
     const chapters = await getChapters([sectionId])
 
     if (chapters.length === 0) {
-      await ctx.answerCallbackQuery({ text: 'No chapters available' })
+      await ctx.answerCallbackQuery()
+      await ctx.editMessageText(
+        '📚 *Stay Tuned!*\n\nChapters for this section are coming soon.\nSend /practice to try another section.',
+        { parse_mode: 'Markdown' }
+      )
       return
     }
 
@@ -193,7 +211,13 @@ function setupHandlers(bot: Bot) {
     const questions = await getQuestionsForChapters([chapterId])
 
     if (questions.length === 0) {
-      await ctx.answerCallbackQuery({ text: 'No questions available for this chapter' })
+      await ctx.answerCallbackQuery()
+      await ctx.editMessageText(
+        '📚 *Stay Tuned!*\n\n' +
+        'Questions for this chapter are coming soon.\n' +
+        'Try another chapter or send /practice to pick a different subject.',
+        { parse_mode: 'Markdown' }
+      )
       return
     }
 
