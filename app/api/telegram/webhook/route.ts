@@ -224,8 +224,9 @@ function setupHandlers(bot: Bot) {
         await ctx.answerCallbackQuery()
         await ctx.editMessageText(
           '🔒 *This chapter requires purchase*\n\n' +
-          'Unlock this chapter for ~₹999~ ₹299 (use code STUDY70)\n' +
-          'Visit clearpass.snpventures.in/select to unlock.',
+          '💰 Unlock for ~₹999~ just *₹299*\n' +
+          '🎟 Use coupon code: `STUDY70` (70% off!)\n\n' +
+          '👉 Visit clearpass.snpventures.in/select to unlock.',
           { parse_mode: 'Markdown' }
         )
         return

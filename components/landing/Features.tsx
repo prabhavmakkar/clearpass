@@ -15,23 +15,17 @@ const features: Omit<Feature, 'delay'>[] = [
   {
     num: '01',
     title: 'Readiness Report',
-    description: 'Take a diagnostic MCQ test and receive a detailed preparation report — topic by topic. Know exactly where you stand before you waste another month studying the wrong things.',
-    tag: 'SKILL GAP ANALYSIS',
+    description: 'Take a diagnostic MCQ test and receive a detailed preparation report — topic by topic, with a personalised AI study plan that targets your real weak spots. Know exactly where you stand before you waste another month studying the wrong things.',
+    tag: 'SKILL GAP ANALYSIS + AI STUDY PLAN',
   },
   {
     num: '02',
-    title: 'AI Study Plan',
-    description: 'Based on your readiness report, ClearPass generates a personalised study plan that prioritises your real weak spots. Not a generic schedule — a plan built around your gaps.',
-    tag: 'AI-POWERED',
-  },
-  {
-    num: '03',
     title: 'Adaptive MCQ Practice',
     description: 'Topic-by-topic adaptive practice that adjusts to your level in real time. Pick your subject, section, and chapter — then practice at your own pace.',
     tag: 'WEB + TELEGRAM',
   },
   {
-    num: '04',
+    num: '03',
     title: 'Practice on Telegram',
     description: 'Don\'t want to open a browser? Practice MCQs directly in Telegram. Pick your topic, answer questions, get instant feedback — all from your phone.',
     tag: 'TELEGRAM BOT',
@@ -95,7 +89,7 @@ export default function Features() {
             key={f.num}
             {...f}
             delay={i * 0.1}
-            href={f.num === '01' || f.num === '03' ? '/select' : f.num === '04' ? 'https://t.me/ClearpassCAbot' : undefined}
+            href={f.num === '01' || f.num === '02' ? '/select' : f.num === '03' ? 'https://t.me/ClearpassCAbot' : undefined}
           />
         ))}
       </div>

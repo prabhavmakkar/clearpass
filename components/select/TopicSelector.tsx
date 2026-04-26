@@ -183,9 +183,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
     <div className="mx-auto max-w-2xl px-6 py-12">
       <h1 className="mb-2 text-3xl font-black">Choose Your Scope</h1>
       <p className="mb-4 text-sm text-gray-500">Select sections and chapters, then take an assessment or practice.</p>
-      <div className="mb-8 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3">
+      <div className="mb-8 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4">
         <p className="text-sm font-semibold text-amber-900">Derivatives &amp; Valuation is free</p>
-        <p className="mt-0.5 text-xs text-amber-700">Other chapters can be unlocked for &#8377;999 &#8377;299 with code STUDY70.</p>
+        <p className="mt-1.5 text-xs text-amber-700">
+          Other chapters can be unlocked for <span className="text-gray-400 line-through">&#8377;999</span>{' '}
+          <span className="text-lg font-black text-green-700">&#8377;299</span>{' '}
+          with code{' '}
+          <span className="inline-block rounded-md bg-black px-2.5 py-1 font-mono text-sm font-bold tracking-widest text-white">STUDY70</span>
+        </p>
       </div>
 
       {subjects.length > 1 && (
