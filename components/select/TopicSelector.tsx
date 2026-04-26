@@ -184,7 +184,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
       <h1 className="mb-2 text-3xl font-black">Choose Your Scope</h1>
       <p className="mb-4 text-sm text-gray-500">Select sections and chapters, then take an assessment or practice.</p>
       <div className="mb-8 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4">
-        <p className="text-sm font-semibold text-amber-900">Derivatives &amp; Valuation is free</p>
+        <p className="text-sm font-semibold text-amber-900">Derivatives &amp; Valuation and Auditing &amp; Ethics are free</p>
         <p className="mt-1.5 text-xs text-amber-700">
           Other chapters can be unlocked for <span className="text-gray-400 line-through">&#8377;999</span>{' '}
           <span className="text-lg font-black text-green-700">&#8377;299</span>{' '}

@@ -273,7 +273,8 @@ export async function getFreeChapterIds(): Promise<string[]> {
   const rows = await sql`
     SELECT c.id FROM chapters c
     JOIN sections s ON s.id = c.section_id
-    WHERE s.name ILIKE '%Derivatives%'`
+    WHERE s.name ILIKE '%Derivatives%'
+       OR c.id LIKE 'ca-inter-audit/%'`
   return rows.map(r => r.id as string)
 }
 
