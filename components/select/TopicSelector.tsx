@@ -180,16 +180,16 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
   const hasSelection = selectedChapters.size > 0
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="mb-2 text-3xl font-black">Choose Your Scope</h1>
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
+      <h1 className="mb-2 text-2xl font-black sm:text-3xl">Choose Your Scope</h1>
       <p className="mb-4 text-sm text-gray-500">Select sections and chapters, then take an assessment or practice.</p>
-      <div className="mb-8 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-4">
+      <div className="mb-6 rounded-xl border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-3 sm:mb-8 sm:px-5 sm:py-4">
         <p className="text-sm font-semibold text-amber-900">Derivatives &amp; Valuation and Auditing &amp; Ethics are free</p>
-        <p className="mt-1.5 text-xs text-amber-700">
+        <p className="mt-1.5 text-xs leading-relaxed text-amber-700">
           Other chapters can be unlocked for <span className="text-gray-400 line-through">&#8377;999</span>{' '}
           <span className="text-lg font-black text-green-700">&#8377;299</span>{' '}
           with code{' '}
-          <span className="inline-block rounded-md bg-black px-2.5 py-1 font-mono text-sm font-bold tracking-widest text-white">STUDY70</span>
+          <span className="inline-block rounded-md bg-black px-2 py-0.5 font-mono text-xs font-bold tracking-widest text-white sm:px-2.5 sm:py-1 sm:text-sm">STUDY70</span>
         </p>
       </div>
 
@@ -222,26 +222,26 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                   : 'border-gray-100 bg-gray-50 opacity-60'
               }`}
             >
-              <label className={`flex items-center gap-3 ${canSelectSection ? 'cursor-pointer' : hasQuestions ? 'cursor-default' : 'cursor-not-allowed'}`}>
+              <label className={`flex flex-wrap items-center gap-2 sm:gap-3 ${canSelectSection ? 'cursor-pointer' : hasQuestions ? 'cursor-default' : 'cursor-not-allowed'}`}>
                 <input
                   type="checkbox"
                   checked={selectedSections.has(section.id)}
                   onChange={() => canSelectSection && toggleSection(section.id)}
                   disabled={!canSelectSection}
-                  className="h-4 w-4 rounded border-gray-300 disabled:opacity-40"
+                  className="h-4 w-4 shrink-0 rounded border-gray-300 disabled:opacity-40"
                 />
-                <span className={`text-sm font-bold ${!hasQuestions ? 'text-gray-400' : ''}`}>{section.name}</span>
-                <span className="ml-auto text-xs text-gray-400">{section.examWeightPercent}% weight</span>
+                <span className={`min-w-0 text-sm font-bold ${!hasQuestions ? 'text-gray-400' : ''}`}>{section.name}</span>
+                <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">{section.examWeightPercent}% weight</span>
               </label>
 
               {!hasQuestions && (
-                <p className="mt-2 ml-7 text-xs text-gray-400">
+                <p className="mt-2 ml-6 text-xs text-gray-400 sm:ml-7">
                   Coming soon — stay tuned for new chapters.
                 </p>
               )}
 
               {hasQuestions && (
-                <div className="mt-3 ml-7 space-y-2">
+                <div className="mt-3 ml-2 space-y-2 sm:ml-7">
                   {sectionChapters.map(ch => {
                     const chHasQuestions = (questionCounts[ch.id] ?? 0) > 0
                     const accessible = isChapterAccessible(ch.id)
@@ -259,23 +259,23 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                     if (purchasable) {
                       return (
                         <div key={ch.id}>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <svg className="h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <svg className="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                               </svg>
                               <span className="text-sm text-gray-500">{ch.name}</span>
                             </div>
                             <button
                               onClick={() => setUnlockingChapter(unlockingChapter === ch.id ? null : ch.id)}
-                              className="rounded-md bg-black px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-80"
+                              className="shrink-0 rounded-md bg-black px-3 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-80"
                             >
                               Unlock
                             </button>
                           </div>
 
                           {unlockingChapter === ch.id && (
-                            <div className="mt-3 ml-5 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                            <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 sm:ml-5 sm:p-4">
                               <p className="mb-1 text-sm font-semibold">Unlock: {ch.name}</p>
                               <p className="mb-3 text-xs text-gray-500">
                                 Price: <span className="line-through text-gray-400">&#8377;999</span>{' '}
@@ -325,25 +325,25 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                     }
 
                     return (
-                      <div key={ch.id} className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                      <div key={ch.id} className="flex flex-wrap items-center justify-between gap-1">
+                        <label className="flex min-w-0 items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selectedChapters.has(ch.id)}
                             onChange={() => toggleChapter(ch.id)}
-                            className="h-3.5 w-3.5 rounded border-gray-300"
+                            className="h-3.5 w-3.5 shrink-0 rounded border-gray-300"
                           />
                           <span className="text-sm text-gray-700">{ch.name}</span>
                           {freeSet.has(ch.id) && (
-                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Free</span>
+                            <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Free</span>
                           )}
                           {purchasedSet.has(ch.id) && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Unlocked</span>
+                            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Unlocked</span>
                           )}
                         </label>
                         <button
                           onClick={() => goToPractice(ch.id)}
-                          className="text-xs text-gray-400 underline underline-offset-2 hover:text-black"
+                          className="shrink-0 text-xs text-gray-400 underline underline-offset-2 hover:text-black"
                         >
                           Practice →
                         </button>

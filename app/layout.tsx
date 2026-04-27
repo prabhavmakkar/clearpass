@@ -13,8 +13,30 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'ClearPass — CA Prep, Finally Done Right',
-  description: "Know exactly where you're weak. Fix it.",
+  metadataBase: new URL('https://clearpass.snpventures.in'),
+  title: {
+    default: 'ClearPass — CA Prep, Finally Done Right',
+    template: '%s | ClearPass',
+  },
+  description: 'Diagnostic assessments, adaptive practice, and readiness reports for Chartered Accountancy students. CA Inter Audit and CA Final Derivatives & Valuation — free to use.',
+  keywords: ['CA exam preparation', 'Chartered Accountancy', 'CA Inter Audit', 'CA Final AFM', 'Derivatives and Valuation', 'MCQ practice', 'readiness report', 'ICAI'],
+  openGraph: {
+    title: 'ClearPass — CA Prep, Finally Done Right',
+    description: 'Diagnostic assessments, adaptive practice, and readiness reports for Chartered Accountancy students.',
+    url: 'https://clearpass.snpventures.in',
+    siteName: 'ClearPass',
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ClearPass — CA Prep, Finally Done Right',
+    description: 'Diagnostic assessments, adaptive practice, and readiness reports for CA students.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
