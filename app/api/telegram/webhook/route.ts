@@ -226,6 +226,7 @@ function setupHandlers(bot: Bot) {
           '🔒 *This chapter requires purchase*\n\n' +
           '💰 Unlock for ~₹999~ just *₹299*\n' +
           '🎟 Use coupon code: `STUDY70` (70% off!)\n\n' +
+          '💡 _Free access: Derivatives & Valuation (CA Finals) and Audit (CA Inter) — try these to get started!_\n\n' +
           '👉 Visit clearpass.snpventures.in/select to unlock.',
           { parse_mode: 'Markdown' }
         )
