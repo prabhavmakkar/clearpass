@@ -20,6 +20,9 @@ next-env.d.ts
 .vite-react-ssg-temp
 src/**/*.js
 
+# seed data (already imported to DB)
+data/
+
 # macOS
 .DS_Store
 **/.DS_Store

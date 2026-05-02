@@ -10,7 +10,7 @@ CA exam preparation platform — diagnostic assessments, practice questions, rea
 - **Framework**: Next.js 15 (App Router, server components)
 - **Database**: Neon Postgres (`@neondatabase/serverless`)
 - **Auth**: Auth.js v5 (`next-auth@beta`) with Google OAuth + `@auth/pg-adapter`
-- **Payments**: Razorpay (planned — not yet integrated)
+- **Payments**: Razorpay (live — checkout modal with coupon support)
 - **Telegram Bot**: grammy (webhook mode, not long-polling)
 - **Hosting**: Vercel (serverless functions)
 - **Styling**: Tailwind CSS
@@ -48,7 +48,7 @@ Diagnostic and practice content selection using Neon-backed question bank.
 - **Admin page**: `/admin` (password-protected via `ADMIN_PASSWORD` env var)
 
 ### 2. Assessment Flow
-- **Select scope**: `/select` → `TopicSelector` component — pick subject, sections, chapters
+- **Select scope**: `/select` → `TopicSelector` component — exam level tabs (Inter/Finals) → subject cards → chapter modal with select all/deselect, payment unlock, and start assessment
 - **Take assessment**: `/assessment` → `AssessmentRunner` component — timed MCQ test
 - **View results**: `/assessment/results` → `AssessmentResults` component — calls `POST /api/assessment/report`
 - Results include: score overview, section/chapter breakdown, weakness analysis, AI study plan, answer review
@@ -56,6 +56,8 @@ Diagnostic and practice content selection using Neon-backed question bank.
 
 ### 3. Practice Mode
 - `/practice` — untimed practice with instant feedback per question
+- Previous/Next navigation buttons (no auto-advance) — students review answers at their own pace
+- History-based navigation: can revisit previously answered questions in read-only review mode
 - `GET /api/practice/questions?chapter=<id>` — fetches questions for a chapter
 
 ### 4. History & Profile
@@ -79,13 +81,13 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 **Empty content**: Sections/chapters without questions show "Stay Tuned!" messages.
 
-**Purchase gating**: Telegram bot checks if user has purchased a chapter before serving questions. Free chapters (Derivatives) bypass the check. Unpurchased paid chapters show a "visit clearpass.snpventures.in/select to unlock" message.
+**Purchase gating**: Telegram bot checks if user has purchased a chapter before serving questions. Free chapters (Derivatives + all Audit chapters) bypass the check. Unpurchased paid chapters show a "visit clearpass.snpventures.in/select to unlock" message with a hint about free chapters (Derivatives for Finals, Audit for Inter).
 
 ### 6. Payments (Razorpay)
 
 **Base price**: ₹999/chapter. Coupons can reduce this (e.g., STUDY70 = 70% off → ₹299).
 
-**Free chapters**: All chapters in the "Derivatives Analysis and Valuation" section (identified by `s.name ILIKE '%Derivatives%'`).
+**Free chapters**: All chapters in the "Derivatives Analysis and Valuation" section (CA Finals) + all chapters with ID prefix `ca-inter-audit/` (CA Intermediate — Audit). Determined by `getFreeChapterIds()` in `lib/queries.ts`.
 
 **Purchasable chapters**: Any chapter that is not free and has questions.
 
@@ -115,23 +117,44 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 - Shows once per attempt (tracked via localStorage with `attemptId`)
 - Dismissible (X button)
 
-### 7. Legal Pages
+### 8. Legal Pages
 - `/privacy` — Privacy Policy
 - `/terms` — Terms of Service
 - `/refund` — Refund Policy (no refunds on digital content)
 - Contact: snpventures.com@gmail.com / +91 97243 42494
 
-### 8. Landing Page
+### 9. Landing Page
 - Responsive nav with hamburger menu on mobile (< 768px breakpoint)
 - Hero with "Live now: Derivatives & Valuation (CA Finals)" pill badge
 - Story, Features, CTA sections
 - Global footer with Product/Resources/Legal columns (in `app/layout.tsx`)
 
+### 10. SEO
+- Dynamic sitemap at `app/sitemap.ts` — public pages (/, /sign-in, /privacy, /terms, /refund)
+- Robots file at `app/robots.ts` — allows `/`, disallows app routes (/api/, /admin, /select, /practice, etc.)
+- Full OpenGraph + Twitter Card metadata in `app/layout.tsx`
+- Google Search Console verified for `clearpass.snpventures.in`
+
+### 11. Admin App (Separate Project)
+- **URL**: https://clearpass-admin.vercel.app
+- **Repo**: `/Users/prabhavmakkar/Desktop/AI projects/clearpass-admin/`
+- Standalone Next.js app for CA partner to upload questions via CSV
+- Shares the same Neon DB (`DATABASE_URL`) — uploads appear instantly in student app
+- Password auth with HMAC-signed cookie
+- Features: dashboard with chapter tree + question counts, CSV upload with validation, question browser/editor
+
 ## Content Availability
 
-- **Free**: Derivatives & Valuation chapter (CA Finals)
-- **Paid** (₹299/chapter, planned): Foreign Exchange, International Finance, Interest Rate Risk
-- **Coming Soon**: All other chapters show greyed-out "Coming soon" state in TopicSelector
+- **Free**: Derivatives & Valuation (CA Finals) + all Audit chapters (CA Intermediate)
+- **Paid** (₹999/chapter, ₹299 with STUDY70 coupon): Foreign Exchange, International Finance, Interest Rate Risk
+- **Coming Soon**: Chapters without questions show greyed-out "Coming soon" state in TopicSelector
+
+## Subjects & Naming
+
+- **CA Intermediate — Audit** (`ca-inter-audit`): Real questions from CA partner (not AI-generated)
+- **CA Final — Advanced Financial Management** (`ca-final-afm`): Derivatives, Forex, International Finance, Interest Rate Risk
+- Subject IDs use prefix convention: `ca-inter-*` = Intermediate, `ca-final-*` = Finals
+- The select page auto-categorizes subjects into exam level tabs using this prefix
 
 ## Database Tables
 
@@ -189,8 +212,16 @@ vercel --prod        # Deploy to production
 vercel env ls        # List Vercel env vars
 ```
 
+## Navigation
+
+- `AppNav` component (`components/AppNav.tsx`) — used on all inner pages (select, practice, history, profile)
+- Desktop (md+): inline links (Tests, History, Telegram icon, profile avatar)
+- Mobile (<md): hamburger menu with dropdown (Test Yourself, Practice, History, Telegram, Sign in)
+- Landing page uses separate `Nav` component in `components/landing/Nav.tsx`
+
 ## Git Workflow
 
 - `main` — production branch
 - `dev` — development branch (PRs merge here first)
-- Vercel auto-deploys from git, but manual `vercel --prod` is also used for immediate deploys
+- Production deploys via `vercel --prod` from dev branch
+- Vercel auto-deploys previews from git pushes
