@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getQuestionsForChapters, getChaptersByIds, getFreeChapterIds, getUserPurchasedChapterIds } from '@/lib/queries'
+import { getQuestionsForChapters, getChaptersByIds, getAccessibleChapterIds, getSubjectForChapter } from '@/lib/queries'
 import { signSession } from '@/lib/sessionToken'
 import { nanoid } from 'nanoid'
 import type { ClientQuestion, Question, Chapter } from '@/lib/types'
@@ -76,14 +76,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const [freeIds, purchasedIds] = await Promise.all([
-    getFreeChapterIds(),
-    getUserPurchasedChapterIds(Number(session.user.id)),
-  ])
-  const accessibleSet = new Set([...freeIds, ...purchasedIds])
+  const accessibleSet = await getAccessibleChapterIds(Number(session.user.id))
   const blocked = chapterIds.filter(id => !accessibleSet.has(id))
   if (blocked.length > 0) {
-    return NextResponse.json({ error: 'Some chapters require purchase' }, { status: 403 })
+    const blockedSubject = await getSubjectForChapter(blocked[0])
+    return NextResponse.json(
+      {
+        error: 'subject_not_purchased',
+        blockedChapterIds: blocked,
+        subjectId: blockedSubject?.id ?? null,
+        subjectName: blockedSubject?.name ?? null,
+      },
+      { status: 403 }
+    )
   }
 
   try {

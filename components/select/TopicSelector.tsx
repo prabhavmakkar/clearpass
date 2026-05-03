@@ -15,7 +15,7 @@ interface Props {
   chapters: Chapter[]
   questionCounts: Record<string, number>
   freeChapterIds: string[]
-  purchasedChapterIds: string[]
+  purchasedSubjectIds: string[]
 }
 
 type ExamLevel = 'inter' | 'finals'
@@ -25,7 +25,7 @@ function getExamLevel(subjectId: string): ExamLevel {
   return 'finals'
 }
 
-export function TopicSelector({ subjects, sections, chapters, questionCounts, freeChapterIds, purchasedChapterIds }: Props) {
+export function TopicSelector({ subjects, sections, chapters, questionCounts, freeChapterIds, purchasedSubjectIds }: Props) {
   const router = useRouter()
   const [examLevel, setExamLevel] = useState<ExamLevel>(() => {
     const hasInter = subjects.some(s => getExamLevel(s.id) === 'inter')
@@ -33,43 +33,52 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
   })
   const [openSubject, setOpenSubject] = useState<string | null>(null)
   const [selectedChapters, setSelectedChapters] = useState<Set<string>>(new Set())
-  const [unlockingChapter, setUnlockingChapter] = useState<string | null>(null)
+  const [unlockingSubject, setUnlockingSubject] = useState<string | null>(null)
   const [couponCode, setCouponCode] = useState('')
   const [couponResult, setCouponResult] = useState<{ valid: boolean; discountPercent?: number; finalAmount?: number; error?: string } | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [paymentLoading, setPaymentLoading] = useState(false)
 
   const freeSet = useMemo(() => new Set(freeChapterIds), [freeChapterIds])
-  const purchasedSet = useMemo(() => new Set(purchasedChapterIds), [purchasedChapterIds])
+  const ownedSubjects = useMemo(() => new Set(purchasedSubjectIds), [purchasedSubjectIds])
 
   const filteredSubjects = useMemo(
     () => subjects.filter(s => getExamLevel(s.id) === examLevel),
     [subjects, examLevel]
   )
 
+  // Per-subject derived state
   const subjectStats = useMemo(() => {
-    const stats: Record<string, { totalQuestions: number; chaptersWithContent: number; totalChapters: number; allFree: boolean }> = {}
+    const stats: Record<string, {
+      totalQuestions: number
+      chaptersWithContent: number
+      totalChapters: number
+      hasPaidChapters: boolean
+      owned: boolean
+    }> = {}
     for (const subject of subjects) {
       const subChapters = chapters.filter(c => c.subjectId === subject.id)
       const withContent = subChapters.filter(c => (questionCounts[c.id] ?? 0) > 0)
       const totalQ = subChapters.reduce((sum, c) => sum + (questionCounts[c.id] ?? 0), 0)
-      const allFree = subChapters.length > 0 && subChapters.every(c => freeSet.has(c.id))
-      stats[subject.id] = { totalQuestions: totalQ, chaptersWithContent: withContent.length, totalChapters: subChapters.length, allFree }
+      const hasPaidChapters = subChapters.some(c => !freeSet.has(c.id) && (questionCounts[c.id] ?? 0) > 0)
+      stats[subject.id] = {
+        totalQuestions: totalQ,
+        chaptersWithContent: withContent.length,
+        totalChapters: subChapters.length,
+        hasPaidChapters,
+        owned: ownedSubjects.has(subject.id),
+      }
     }
     return stats
-  }, [subjects, chapters, questionCounts, freeSet])
+  }, [subjects, chapters, questionCounts, freeSet, ownedSubjects])
 
-  function isChapterAccessible(chId: string): boolean {
-    return freeSet.has(chId) || purchasedSet.has(chId)
+  function isChapterAccessible(chId: string, subjectId: string): boolean {
+    return freeSet.has(chId) || ownedSubjects.has(subjectId)
   }
 
-  function isPurchasable(chId: string): boolean {
-    return !freeSet.has(chId) && !purchasedSet.has(chId) && (questionCounts[chId] ?? 0) > 0
-  }
-
-  function toggleChapter(id: string) {
+  function toggleChapter(id: string, subjectId: string) {
     if ((questionCounts[id] ?? 0) === 0) return
-    if (!isChapterAccessible(id)) return
+    if (!isChapterAccessible(id, subjectId)) return
     setSelectedChapters(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -83,7 +92,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
     setSelectedChapters(prev => {
       const next = new Set(prev)
       for (const ch of subChapters) {
-        if ((questionCounts[ch.id] ?? 0) > 0 && isChapterAccessible(ch.id)) {
+        if ((questionCounts[ch.id] ?? 0) > 0 && isChapterAccessible(ch.id, subjectId)) {
           next.add(ch.id)
         }
       }
@@ -135,14 +144,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
     }
   }, [couponCode])
 
-  async function handleUnlock(chapterId: string) {
+  async function handleUnlockSubject(subjectId: string) {
     setPaymentLoading(true)
     try {
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chapterId,
+          subjectId,
           couponCode: couponResult?.valid ? couponCode.trim() : undefined,
         }),
       })
@@ -153,14 +162,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
         return
       }
 
-      const { orderId, amount, purchaseId } = await res.json()
+      const { orderId, amount, purchaseId, subjectName } = await res.json()
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount,
         currency: 'INR',
         name: 'ClearPass',
-        description: 'Chapter Unlock',
+        description: subjectName ?? 'Subject Unlock',
         order_id: orderId,
         handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           const verifyRes = await fetch('/api/payments/verify', {
@@ -174,7 +183,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
             }),
           })
           if (verifyRes.ok) {
-            setUnlockingChapter(null)
+            setUnlockingSubject(null)
             setCouponCode('')
             setCouponResult(null)
             router.refresh()
@@ -198,8 +207,11 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
   const modalSections = openSubject ? sections.filter(s => s.subjectId === openSubject) : []
   const modalChapters = openSubject ? chapters.filter(c => c.subjectId === openSubject) : []
   const selectedInModal = modalChapters.filter(c => selectedChapters.has(c.id)).length
-  const allAccessibleInModal = modalChapters.filter(c => (questionCounts[c.id] ?? 0) > 0 && isChapterAccessible(c.id))
+  const allAccessibleInModal = openSubject
+    ? modalChapters.filter(c => (questionCounts[c.id] ?? 0) > 0 && isChapterAccessible(c.id, openSubject))
+    : []
   const allSelected = allAccessibleInModal.length > 0 && allAccessibleInModal.every(c => selectedChapters.has(c.id))
+  const modalSubjectStats = openSubject ? subjectStats[openSubject] : null
 
   const hasSelection = selectedChapters.size > 0
 
@@ -241,6 +253,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
         <div className="grid gap-4">
           {filteredSubjects.map(subject => {
             const stats = subjectStats[subject.id]
+            const showLock = stats.hasPaidChapters && !stats.owned
             return (
               <button
                 key={subject.id}
@@ -257,8 +270,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    {stats.allFree && (
+                    {stats.owned && (
+                      <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">Unlocked</span>
+                    )}
+                    {!stats.owned && !stats.hasPaidChapters && (
                       <span className="rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-semibold text-green-700">Free</span>
+                    )}
+                    {showLock && (
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold text-gray-700">&#8377;999</span>
                     )}
                     <svg className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -284,7 +303,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
       )}
 
       {/* Chapter Modal */}
-      {openSubject && modalSubject && (
+      {openSubject && modalSubject && modalSubjectStats && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setOpenSubject(null)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div
@@ -307,14 +326,64 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
               </button>
             </div>
 
-            {/* Coupon Banner */}
-            <div className="border-b border-gray-100 bg-amber-50/50 px-5 py-3">
-              <p className="text-xs text-amber-800">
-                Unlock paid chapters for <span className="line-through">&#8377;999</span>{' '}
-                <span className="font-bold text-green-700">&#8377;299</span> with{' '}
-                <span className="rounded bg-black px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">STUDY70</span>
-              </p>
-            </div>
+            {/* Subject Unlock Banner — only for paid, not-owned subjects */}
+            {modalSubjectStats.hasPaidChapters && !modalSubjectStats.owned && (
+              <div className="border-b border-gray-100 bg-amber-50/50 px-5 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-xs text-amber-800">
+                    Unlock the entire subject for <span className="line-through">&#8377;999</span>{' '}
+                    <span className="font-bold text-green-700">&#8377;299</span> with{' '}
+                    <span className="rounded bg-black px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">STUDY70</span>
+                  </p>
+                  <button
+                    onClick={() => setUnlockingSubject(unlockingSubject === modalSubject.id ? null : modalSubject.id)}
+                    className="shrink-0 rounded-md bg-black px-3 py-1 text-xs font-semibold text-white hover:opacity-80"
+                  >
+                    Unlock
+                  </button>
+                </div>
+                {unlockingSubject === modalSubject.id && (
+                  <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3">
+                    <p className="mb-2 text-xs text-gray-500">
+                      Price: <span className="line-through text-gray-400">&#8377;999</span>{' '}
+                      {couponResult?.valid ? (
+                        <span className="font-bold text-green-700">&#8377;{(couponResult.finalAmount! / 100).toFixed(2)}</span>
+                      ) : (
+                        <span className="font-bold">&#8377;999</span>
+                      )}
+                    </p>
+                    <div className="mb-2 flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null) }}
+                        placeholder="Coupon code"
+                        className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-sm uppercase placeholder:normal-case placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+                      />
+                      <button
+                        onClick={validateCoupon}
+                        disabled={couponLoading || !couponCode.trim()}
+                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-100 disabled:opacity-50"
+                      >
+                        {couponLoading ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                    {couponResult && (
+                      <p className={`mb-2 text-xs ${couponResult.valid ? 'text-green-700' : 'text-red-600'}`}>
+                        {couponResult.valid ? `${couponResult.discountPercent}% discount applied!` : couponResult.error}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => handleUnlockSubject(modalSubject.id)}
+                      disabled={paymentLoading}
+                      className="w-full rounded-md bg-black px-4 py-2 text-sm font-bold text-white hover:opacity-80 disabled:opacity-50"
+                    >
+                      {paymentLoading ? 'Processing...' : `Pay ₹${couponResult?.valid ? (couponResult.finalAmount! / 100).toFixed(2) : '999'}`}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Select All / Deselect */}
             {allAccessibleInModal.length > 0 && (
@@ -342,8 +411,8 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                       )}
                       {sectionChapters.map(ch => {
                         const chHasQuestions = (questionCounts[ch.id] ?? 0) > 0
-                        const accessible = isChapterAccessible(ch.id)
-                        const purchasable = isPurchasable(ch.id)
+                        const accessible = isChapterAccessible(ch.id, openSubject)
+                        const isFree = freeSet.has(ch.id)
 
                         if (!chHasQuestions) {
                           return (
@@ -354,64 +423,16 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                           )
                         }
 
-                        if (purchasable) {
+                        if (!accessible) {
                           return (
-                            <div key={ch.id} className="rounded-lg px-3 py-2.5">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="flex min-w-0 items-center gap-2">
-                                  <svg className="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                  </svg>
-                                  <span className="text-sm text-gray-500">{ch.name}</span>
-                                </div>
-                                <button
-                                  onClick={() => setUnlockingChapter(unlockingChapter === ch.id ? null : ch.id)}
-                                  className="shrink-0 rounded-md bg-black px-3 py-1 text-xs font-semibold text-white hover:opacity-80"
-                                >
-                                  Unlock
-                                </button>
+                            <div key={ch.id} className="flex items-center justify-between rounded-lg px-3 py-2.5">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <svg className="h-3.5 w-3.5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <span className="text-sm text-gray-400">{ch.name}</span>
                               </div>
-
-                              {unlockingChapter === ch.id && (
-                                <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
-                                  <p className="mb-2 text-xs text-gray-500">
-                                    Price: <span className="line-through text-gray-400">&#8377;999</span>{' '}
-                                    {couponResult?.valid ? (
-                                      <span className="font-bold text-green-700">&#8377;{(couponResult.finalAmount! / 100).toFixed(0)}</span>
-                                    ) : (
-                                      <span className="font-bold">&#8377;999</span>
-                                    )}
-                                  </p>
-                                  <div className="mb-2 flex gap-2">
-                                    <input
-                                      type="text"
-                                      value={couponCode}
-                                      onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null) }}
-                                      placeholder="Coupon code"
-                                      className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-sm uppercase placeholder:normal-case placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-                                    />
-                                    <button
-                                      onClick={validateCoupon}
-                                      disabled={couponLoading || !couponCode.trim()}
-                                      className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-100 disabled:opacity-50"
-                                    >
-                                      {couponLoading ? '...' : 'Apply'}
-                                    </button>
-                                  </div>
-                                  {couponResult && (
-                                    <p className={`mb-2 text-xs ${couponResult.valid ? 'text-green-700' : 'text-red-600'}`}>
-                                      {couponResult.valid ? `${couponResult.discountPercent}% discount applied!` : couponResult.error}
-                                    </p>
-                                  )}
-                                  <button
-                                    onClick={() => handleUnlock(ch.id)}
-                                    disabled={paymentLoading}
-                                    className="w-full rounded-md bg-black px-4 py-2 text-sm font-bold text-white hover:opacity-80 disabled:opacity-50"
-                                  >
-                                    {paymentLoading ? 'Processing...' : `Pay ₹${couponResult?.valid ? (couponResult.finalAmount! / 100).toFixed(0) : '999'}`}
-                                  </button>
-                                </div>
-                              )}
+                              <span className="text-[10px] text-gray-400">Subject locked</span>
                             </div>
                           )
                         }
@@ -422,14 +443,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                               <input
                                 type="checkbox"
                                 checked={selectedChapters.has(ch.id)}
-                                onChange={() => toggleChapter(ch.id)}
+                                onChange={() => toggleChapter(ch.id, openSubject)}
                                 className="h-4 w-4 shrink-0 rounded border-gray-300"
                               />
                               <span className="text-sm text-gray-700">{ch.name}</span>
-                              {freeSet.has(ch.id) && (
-                                <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Free</span>
+                              {isFree && (
+                                <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Free preview</span>
                               )}
-                              {purchasedSet.has(ch.id) && (
+                              {!isFree && modalSubjectStats.owned && (
                                 <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Unlocked</span>
                               )}
                             </label>
@@ -437,7 +458,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                               onClick={() => goToPractice(ch.id)}
                               className="shrink-0 text-xs text-gray-400 underline underline-offset-2 hover:text-black"
                             >
-                              Practice →
+                              Practice &rarr;
                             </button>
                           </div>
                         )
@@ -455,7 +476,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                   onClick={goToAssessment}
                   className="w-full rounded-xl bg-black px-6 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-80"
                 >
-                  Take Assessment ({selectedInModal} chapter{selectedInModal !== 1 ? 's' : ''}) →
+                  Take Assessment ({selectedInModal} chapter{selectedInModal !== 1 ? 's' : ''}) &rarr;
                 </button>
               ) : (
                 <p className="text-center text-xs text-gray-400">Select chapters above to take an assessment</p>

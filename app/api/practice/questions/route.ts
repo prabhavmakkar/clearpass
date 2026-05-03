@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getQuestionsForChapters, getFreeChapterIds, getUserPurchasedChapterIds } from '@/lib/queries'
+import { getQuestionsForChapters, getAccessibleChapterIds } from '@/lib/queries'
 import type { ClientQuestion } from '@/lib/types'
 
 export async function GET(request: Request) {
@@ -13,12 +13,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const freeIds = await getFreeChapterIds()
-  if (!freeIds.includes(chapterId)) {
-    const purchased = await getUserPurchasedChapterIds(Number(session.user.id))
-    if (!purchased.includes(chapterId)) {
-      return NextResponse.json({ error: 'Chapter not purchased' }, { status: 403 })
-    }
+  const accessible = await getAccessibleChapterIds(Number(session.user.id))
+  if (!accessible.has(chapterId)) {
+    return NextResponse.json({ error: 'Chapter not purchased' }, { status: 403 })
   }
 
   try {

@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth'
-import { getSubjects, getSections, getChapters, getQuestionCountsByChapter, getFreeChapterIds, getUserPurchasedChapterIds } from '@/lib/queries'
+import { getSubjects, getSections, getChapters, getQuestionCountsByChapter, getFreeChapterIds, getUserPurchasedSubjectIds } from '@/lib/queries'
 import { TopicSelector } from '@/components/select/TopicSelector'
 import { AppNav } from '@/components/AppNav'
 
@@ -24,11 +24,11 @@ export default async function SelectPage() {
     allSectionIds.push(...secs.map(sec => sec.id))
   }
 
-  const [allChapters, questionCounts, freeChapterIds, purchasedChapterIds] = await Promise.all([
+  const [allChapters, questionCounts, freeChapterIds, purchasedSubjectIds] = await Promise.all([
     allSectionIds.length > 0 ? getChapters(allSectionIds) : Promise.resolve([]),
     getQuestionCountsByChapter(),
     getFreeChapterIds(),
-    session?.user?.id ? getUserPurchasedChapterIds(Number(session.user.id)) : Promise.resolve([]),
+    session?.user?.id ? getUserPurchasedSubjectIds(Number(session.user.id)) : Promise.resolve([]),
   ])
 
   return (
@@ -40,7 +40,7 @@ export default async function SelectPage() {
         chapters={allChapters}
         questionCounts={questionCounts}
         freeChapterIds={freeChapterIds}
-        purchasedChapterIds={purchasedChapterIds}
+        purchasedSubjectIds={purchasedSubjectIds}
       />
     </main>
   )

@@ -2,9 +2,8 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { nanoid } from 'nanoid'
 import {
-  getQuestionCountsByChapter,
-  getFreeChapterIds,
-  hasUserPurchasedChapter,
+  getSubjects,
+  hasUserPurchasedSubject,
   getCoupon,
   createPurchase,
 } from '@/lib/queries'
@@ -17,27 +16,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { chapterId, couponCode } = await req.json()
-  if (!chapterId || typeof chapterId !== 'string') {
-    return NextResponse.json({ error: 'chapterId required' }, { status: 400 })
+  const { subjectId, couponCode } = await req.json()
+  if (!subjectId || typeof subjectId !== 'string') {
+    return NextResponse.json({ error: 'subjectId required' }, { status: 400 })
   }
 
-  const [questionCounts, freeIds] = await Promise.all([
-    getQuestionCountsByChapter(),
-    getFreeChapterIds(),
-  ])
-
-  if ((questionCounts[chapterId] ?? 0) === 0) {
-    return NextResponse.json({ error: 'Chapter has no questions' }, { status: 400 })
+  const subjects = await getSubjects()
+  const subject = subjects.find(s => s.id === subjectId)
+  if (!subject) {
+    return NextResponse.json({ error: 'Unknown subject' }, { status: 400 })
   }
 
-  if (freeIds.includes(chapterId)) {
-    return NextResponse.json({ error: 'This chapter is free' }, { status: 400 })
-  }
-
-  const alreadyPurchased = await hasUserPurchasedChapter(Number(session.user.id), chapterId)
+  const alreadyPurchased = await hasUserPurchasedSubject(Number(session.user.id), subjectId)
   if (alreadyPurchased) {
-    return NextResponse.json({ error: 'Already purchased' }, { status: 400 })
+    return NextResponse.json({ error: 'Already purchased' }, { status: 409 })
   }
 
   let amount = BASE_PRICE_PAISE
@@ -73,6 +65,7 @@ export async function POST(req: Request) {
       amount,
       currency: 'INR',
       receipt,
+      notes: { subject_id: subjectId, subject_name: subject.name },
     }),
   })
 
@@ -88,7 +81,7 @@ export async function POST(req: Request) {
   await createPurchase({
     id: purchaseId,
     userId: Number(session.user.id),
-    chapterId,
+    subjectId,
     razorpayOrderId: order.id,
     amount,
     originalAmount: BASE_PRICE_PAISE,
@@ -101,5 +94,6 @@ export async function POST(req: Request) {
     originalAmount: BASE_PRICE_PAISE,
     currency: 'INR',
     purchaseId,
+    subjectName: subject.name,
   })
 }

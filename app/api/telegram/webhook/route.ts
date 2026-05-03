@@ -11,7 +11,8 @@ import {
   getQuestionsByIds,
   getAttemptsByUser,
   getFreeChapterIds,
-  getUserPurchasedChapterIds,
+  getAccessibleChapterIds,
+  getSubjectForChapter,
 } from '@/lib/queries'
 import type { Question } from '@/lib/types'
 
@@ -182,9 +183,11 @@ function setupHandlers(bot: Bot) {
       return
     }
 
+    const freeIds = new Set(await getFreeChapterIds())
     const kb = new InlineKeyboard()
     for (const c of chapters) {
-      kb.text(c.name, `ch:${c.id}`).row()
+      const label = freeIds.has(c.id) ? `🆓 ${c.name}` : c.name
+      kb.text(label, `ch:${c.id}`).row()
     }
     kb.text('← Back', `back:sec:${chapters[0]?.subjectId ?? ''}`).row()
 
@@ -217,21 +220,20 @@ function setupHandlers(bot: Bot) {
       return
     }
 
-    const freeIds = await getFreeChapterIds()
-    if (!freeIds.includes(chapterId)) {
-      const purchased = await getUserPurchasedChapterIds(user.id)
-      if (!purchased.includes(chapterId)) {
-        await ctx.answerCallbackQuery()
-        await ctx.editMessageText(
-          '🔒 *This chapter requires purchase*\n\n' +
-          '💰 Unlock for ~₹999~ just *₹299*\n' +
-          '🎟 Use coupon code: `STUDY70` (70% off!)\n\n' +
-          '💡 _Free access: Derivatives & Valuation (CA Finals) and Audit (CA Inter) — try these to get started!_\n\n' +
-          '👉 Visit clearpass.snpventures.in/select to unlock.',
-          { parse_mode: 'Markdown' }
-        )
-        return
-      }
+    const accessible = await getAccessibleChapterIds(user.id)
+    if (!accessible.has(chapterId)) {
+      const subject = await getSubjectForChapter(chapterId)
+      const subjectName = subject?.name ?? 'this subject'
+      await ctx.answerCallbackQuery()
+      await ctx.editMessageText(
+        `🔒 *${escapeMarkdown(subjectName)} is locked*\n\n` +
+        '💰 Unlock the entire subject for ~₹999~ just *₹299*\n' +
+        '🎟 Use coupon code: `STUDY70` (70% off!)\n\n' +
+        '💡 _Try the free preview chapter (🆓) in this subject to get started!_\n\n' +
+        '👉 Visit clearpass.snpventures.in/select to unlock.',
+        { parse_mode: 'Markdown' }
+      )
+      return
     }
 
     const questions = await getQuestionsForChapters([chapterId])
