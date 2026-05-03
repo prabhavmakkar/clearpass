@@ -222,25 +222,25 @@ export async function insertFeedback(userId: number, attemptId: string | null, r
 
 // ── Purchases & Coupons ─────────────────────────────────────────────
 
-export async function getUserPurchasedChapterIds(userId: number): Promise<string[]> {
+export async function getUserPurchasedSubjectIds(userId: number): Promise<string[]> {
   const sql = getDb()
-  const rows = await sql`SELECT chapter_id FROM purchases WHERE user_id = ${userId} AND status = 'paid'`
-  return rows.map(r => r.chapter_id as string)
+  const rows = await sql`SELECT subject_id FROM purchases WHERE user_id = ${userId} AND status = 'paid'`
+  return rows.map(r => r.subject_id as string)
 }
 
-export async function hasUserPurchasedChapter(userId: number, chapterId: string): Promise<boolean> {
+export async function hasUserPurchasedSubject(userId: number, subjectId: string): Promise<boolean> {
   const sql = getDb()
-  const rows = await sql`SELECT 1 FROM purchases WHERE user_id = ${userId} AND chapter_id = ${chapterId} AND status = 'paid' LIMIT 1`
+  const rows = await sql`SELECT 1 FROM purchases WHERE user_id = ${userId} AND subject_id = ${subjectId} AND status = 'paid' LIMIT 1`
   return rows.length > 0
 }
 
 export async function createPurchase(p: {
-  id: string; userId: number; chapterId: string; razorpayOrderId: string;
+  id: string; userId: number; subjectId: string; razorpayOrderId: string;
   amount: number; originalAmount: number; couponCode: string | null;
 }): Promise<void> {
   const sql = getDb()
-  await sql`INSERT INTO purchases (id, user_id, chapter_id, razorpay_order_id, amount, original_amount, coupon_code, status)
-    VALUES (${p.id}, ${p.userId}, ${p.chapterId}, ${p.razorpayOrderId}, ${p.amount}, ${p.originalAmount}, ${p.couponCode}, 'pending')`
+  await sql`INSERT INTO purchases (id, user_id, subject_id, razorpay_order_id, amount, original_amount, coupon_code, status)
+    VALUES (${p.id}, ${p.userId}, ${p.subjectId}, ${p.razorpayOrderId}, ${p.amount}, ${p.originalAmount}, ${p.couponCode}, 'pending')`
 }
 
 export async function markPurchasePaid(purchaseId: string, paymentId: string, signature: string): Promise<void> {
@@ -270,12 +270,36 @@ export async function incrementCouponUsage(code: string): Promise<void> {
 
 export async function getFreeChapterIds(): Promise<string[]> {
   const sql = getDb()
-  const rows = await sql`
-    SELECT c.id FROM chapters c
-    JOIN sections s ON s.id = c.section_id
-    WHERE s.name ILIKE '%Derivatives%'
-       OR c.id LIKE 'ca-inter-audit/%'`
+  const rows = await sql`SELECT id FROM chapters WHERE is_free_preview = true`
   return rows.map(r => r.id as string)
+}
+
+// Single source of truth for "can this user see this chapter?"
+// - userId === null: only free-preview chapters
+// - userId === number: free-preview chapters + every chapter of every subject they own
+export async function getAccessibleChapterIds(userId: number | null): Promise<Set<string>> {
+  const sql = getDb()
+  if (userId === null) {
+    const rows = await sql`SELECT id FROM chapters WHERE is_free_preview = true`
+    return new Set(rows.map(r => r.id as string))
+  }
+  const rows = await sql`
+    SELECT id FROM chapters WHERE is_free_preview = true
+    UNION
+    SELECT c.id FROM chapters c
+    JOIN purchases p ON p.subject_id = c.subject_id
+    WHERE p.user_id = ${userId} AND p.status = 'paid'`
+  return new Set(rows.map(r => r.id as string))
+}
+
+export async function getSubjectForChapter(chapterId: string): Promise<{ id: string; name: string } | null> {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT s.id, s.name FROM subjects s
+    JOIN chapters c ON c.subject_id = s.id
+    WHERE c.id = ${chapterId} LIMIT 1`
+  if (rows.length === 0) return null
+  return { id: rows[0].id as string, name: rows[0].name as string }
 }
 
 // ── Writes (admin) ────────────────────────────────────────────────────

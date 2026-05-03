@@ -11,6 +11,11 @@ import {
   getChaptersByIds,
   getQuestionsForChapters,
   insertSubject,
+  getUserPurchasedSubjectIds,
+  hasUserPurchasedSubject,
+  getAccessibleChapterIds,
+  getFreeChapterIds,
+  getSubjectForChapter,
 } from '../queries'
 
 beforeEach(() => { mockSql.mockReset() })
@@ -92,5 +97,74 @@ describe('insertSubject', () => {
     mockSql.mockResolvedValue([])
     await insertSubject('s1', 'Audit')
     expect(mockSql).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getUserPurchasedSubjectIds', () => {
+  it('returns subject ids for paid rows', async () => {
+    mockSql.mockResolvedValue([{ subject_id: 'ca-final-afm' }, { subject_id: 'ca-final-audit' }])
+    const result = await getUserPurchasedSubjectIds(7)
+    expect(result).toEqual(['ca-final-afm', 'ca-final-audit'])
+    expect(mockSql).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns empty array when no purchases', async () => {
+    mockSql.mockResolvedValue([])
+    expect(await getUserPurchasedSubjectIds(7)).toEqual([])
+  })
+})
+
+describe('hasUserPurchasedSubject', () => {
+  it('returns true when a row exists', async () => {
+    mockSql.mockResolvedValue([{ '?column?': 1 }])
+    expect(await hasUserPurchasedSubject(7, 'ca-final-afm')).toBe(true)
+  })
+
+  it('returns false when no row exists', async () => {
+    mockSql.mockResolvedValue([])
+    expect(await hasUserPurchasedSubject(7, 'ca-final-afm')).toBe(false)
+  })
+})
+
+describe('getFreeChapterIds', () => {
+  it('reads chapters where is_free_preview = true', async () => {
+    mockSql.mockResolvedValue([{ id: 'ca-final-afm/derivatives/ch09' }, { id: 'ca-final-audit/quality-control/ch01' }])
+    expect(await getFreeChapterIds()).toEqual(['ca-final-afm/derivatives/ch09', 'ca-final-audit/quality-control/ch01'])
+  })
+})
+
+describe('getAccessibleChapterIds', () => {
+  it('returns only free-preview chapters when userId is null', async () => {
+    mockSql.mockResolvedValue([{ id: 'ca-final-afm/derivatives/ch09' }])
+    const result = await getAccessibleChapterIds(null)
+    expect(result).toEqual(new Set(['ca-final-afm/derivatives/ch09']))
+    expect(mockSql).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns free-preview + chapters of owned subjects when userId is set', async () => {
+    mockSql.mockResolvedValue([
+      { id: 'ca-final-afm/derivatives/ch09' },
+      { id: 'ca-final-afm/strategy-risk-capbudget/ch01' },
+      { id: 'ca-final-afm/strategy-risk-capbudget/ch02' },
+    ])
+    const result = await getAccessibleChapterIds(7)
+    expect(result).toEqual(new Set([
+      'ca-final-afm/derivatives/ch09',
+      'ca-final-afm/strategy-risk-capbudget/ch01',
+      'ca-final-afm/strategy-risk-capbudget/ch02',
+    ]))
+  })
+})
+
+describe('getSubjectForChapter', () => {
+  it('returns subject id and name', async () => {
+    mockSql.mockResolvedValue([{ id: 'ca-final-afm', name: 'CA Final — AFM' }])
+    expect(await getSubjectForChapter('ca-final-afm/derivatives/ch01'))
+      .toEqual({ id: 'ca-final-afm', name: 'CA Final — AFM' })
+  })
+
+  it('returns null when chapter does not exist', async () => {
+    mockSql.mockResolvedValue([])
+    expect(await getSubjectForChapter('ghost')).toBeNull()
   })
 })
