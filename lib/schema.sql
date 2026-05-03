@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS chapters (
   subject_id  TEXT NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
   name        TEXT NOT NULL,
   sort_order  INT NOT NULL DEFAULT 0,
-  exam_weight_percent NUMERIC(5,2) NOT NULL DEFAULT 0
+  exam_weight_percent NUMERIC(5,2) NOT NULL DEFAULT 0,
+  is_free_preview BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS questions (
@@ -132,7 +133,7 @@ CREATE TABLE IF NOT EXISTS feedback (
 CREATE TABLE IF NOT EXISTS purchases (
   id                  TEXT PRIMARY KEY,
   user_id             INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  chapter_id          TEXT NOT NULL,
+  subject_id          TEXT NOT NULL,
   razorpay_order_id   TEXT,
   razorpay_payment_id TEXT,
   razorpay_signature  TEXT,
@@ -144,6 +145,7 @@ CREATE TABLE IF NOT EXISTS purchases (
 );
 
 CREATE INDEX IF NOT EXISTS idx_purchases_user ON purchases(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_purchases_user_subject ON purchases(user_id, subject_id) WHERE status = 'paid';
 
 CREATE TABLE IF NOT EXISTS coupons (
   code             TEXT PRIMARY KEY,
@@ -156,4 +158,8 @@ CREATE TABLE IF NOT EXISTS coupons (
 
 INSERT INTO coupons (code, discount_percent, active)
   VALUES ('STUDY70', 70, true)
+  ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO coupons (code, discount_percent, active)
+  VALUES ('TEST99', 99, true)
   ON CONFLICT (code) DO NOTHING;
