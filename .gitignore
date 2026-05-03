@@ -29,3 +29,6 @@ data/
 .playwright-mcp/
 tsconfig.tsbuildinfo
 *.png
+
+# Migration backups (contain payment data — never commit)
+purchases-backup-*.json
