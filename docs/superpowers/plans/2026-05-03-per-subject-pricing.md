@@ -106,10 +106,18 @@ BEGIN;
 -- 1) Add is_free_preview column to chapters (default false).
 ALTER TABLE chapters ADD COLUMN IF NOT EXISTS is_free_preview BOOLEAN NOT NULL DEFAULT false;
 
--- 2) Mark the three preview chapters. Other chapters stay false.
---    Idempotent: running again with the same IDs is a no-op.
+-- 2a) Mark the three Final-subject preview chapters. Other chapters stay false.
+--     Idempotent: running again with the same IDs is a no-op.
 UPDATE chapters SET is_free_preview = true
-  WHERE id IN ('ca-final-afm/ch09', 'ca-final-audit/ch01', 'ca-final-fr/ch01');
+  WHERE id IN (
+    'ca-final-afm/derivatives/ch09',
+    'ca-final-audit/quality-control/ch01',
+    'ca-final-fr/framework-presentation/ch01'
+  );
+
+-- 2b) ca-inter-audit is a legacy fully-free subject. Mark every chapter in it
+--     as a free preview so it stays accessible to all users with no purchase.
+UPDATE chapters SET is_free_preview = true WHERE subject_id = 'ca-inter-audit';
 
 -- 3) Drop existing pending/paid purchases (test data only).
 DELETE FROM purchases;
@@ -260,7 +268,7 @@ console.log('TEST99 coupon:', test99[0]);
 ```
 
 Expected:
-- Free preview chapters includes `ca-final-afm/ch09`, `ca-final-audit/ch01`. Includes `ca-final-fr/ch01` only if FR was loaded.
+- Free preview chapters includes `ca-final-afm/derivatives/ch09`, `ca-final-audit/quality-control/ch01`, `ca-final-fr/framework-presentation/ch01`, plus all `ca-inter-audit/...` chapters (legacy fully-free subject).
 - `purchases` columns include `subject_id`, NOT `chapter_id`.
 - TEST99 coupon: `{ code: 'TEST99', discount_percent: 99, active: true }`.
 
@@ -1638,11 +1646,12 @@ In `CLAUDE.md`, find the `### 6. Payments (Razorpay)` section. Replace the `**Ba
 - `TEST99` — 99% off → ₹9.99 (test coupon to exercise the real Razorpay path in production)
 
 **Free preview chapters** (one per paid subject): determined by `chapters.is_free_preview` boolean column. Currently:
-- `ca-final-afm/ch09` — Introduction to Forwards Futures and Options (AFM)
-- `ca-final-audit/ch01` — Quality Control — SQC-1 & SA 220 (Audit)
-- `ca-final-fr/ch01` — Introduction to Indian Accounting Standards (FR)
+- `ca-final-afm/derivatives/ch09` — Introduction to Forwards Futures and Options (AFM)
+- `ca-final-audit/quality-control/ch01` — Quality Control — SQC-1 & SA 220 (Audit)
+- `ca-final-fr/framework-presentation/ch01` — Introduction to Indian Accounting Standards (FR)
+- All `ca-inter-audit/...` chapters (legacy fully-free CA Intermediate subject)
 
-**Paid subjects**: AFM, Audit, FR (CA Finals).
+**Paid subjects**: AFM, Audit, FR (CA Finals). The legacy `ca-inter-audit` subject remains fully free.
 
 **API routes:**
 - `POST /api/payments/create-order` — accepts `{ subjectId, couponCode? }`, creates Razorpay order, stores pending purchase
@@ -1677,7 +1686,8 @@ Replace with:
 ## Content Availability
 
 - **Paid subjects** (₹999 per subject, ₹299 with STUDY70 coupon): AFM, Audit, FR — all CA Finals
-- **Free preview chapter per subject**: AFM ch09 (Forwards Futures and Options), Audit ch01 (Quality Control), FR ch01 (Intro to Ind AS)
+- **Free preview chapter per paid subject**: AFM derivatives/ch09 (Forwards Futures and Options), Audit quality-control/ch01 (Quality Control), FR framework-presentation/ch01 (Intro to Ind AS)
+- **Fully free subject**: `ca-inter-audit` (legacy CA Intermediate Audit) — every chapter accessible without purchase
 - **Coming Soon**: Chapters without questions show greyed-out "Coming soon" state in TopicSelector
 ```
 
@@ -1685,7 +1695,7 @@ Replace with:
 
 Find:
 ```markdown
-- **CA Intermediate — Audit** (`ca-inter-audit`): Real questions from CA partner (not AI-generated)
+- **CA Intermediate — Audit** (`ca-inter-audit`): Legacy fully-free subject — all chapters flagged `is_free_preview = true`
 - **CA Final — Advanced Financial Management** (`ca-final-afm`): Derivatives, Forex, International Finance, Interest Rate Risk
 - Subject IDs use prefix convention: `ca-inter-*` = Intermediate, `ca-final-*` = Finals
 - The select page auto-categorizes subjects into exam level tabs using this prefix
