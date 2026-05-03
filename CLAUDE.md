@@ -85,28 +85,33 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 ### 6. Payments (Razorpay)
 
-**Base price**: ₹999/chapter. Coupons can reduce this (e.g., STUDY70 = 70% off → ₹299).
+**Base price**: ₹999 per **subject** (one purchase unlocks every chapter in that subject). Coupons can reduce this:
+- `STUDY70` — 70% off → ₹299 (public)
+- `TEST99` — 99% off → ₹9.99 (test coupon to exercise the real Razorpay path in production)
 
-**Free chapters**: All chapters in the "Derivatives Analysis and Valuation" section (CA Finals) + all chapters with ID prefix `ca-inter-audit/` (CA Intermediate — Audit). Determined by `getFreeChapterIds()` in `lib/queries.ts`.
+**Free preview chapters** (one per paid subject): determined by `chapters.is_free_preview` boolean column. Currently:
+- `ca-final-afm/derivatives/ch09` — Introduction to Forwards Futures and Options (AFM)
+- `ca-final-audit/quality-control/ch01` — Quality Control — SQC-1 & SA 220 (Audit)
+- `ca-final-fr/framework-presentation/ch01` — Introduction to Indian Accounting Standards (FR)
+- All `ca-inter-audit/...` chapters (legacy fully-free CA Intermediate subject)
 
-**Purchasable chapters**: Any chapter that is not free and has questions.
+**Paid subjects**: AFM, Audit, FR (CA Finals). The legacy `ca-inter-audit` subject remains fully free.
 
 **API routes:**
-- `POST /api/payments/create-order` — creates Razorpay order, stores pending purchase in `purchases` table
+- `POST /api/payments/create-order` — accepts `{ subjectId, couponCode? }`, creates Razorpay order, stores pending purchase
 - `POST /api/payments/verify` — HMAC-SHA256 signature verification, marks purchase as paid
 - `POST /api/payments/validate-coupon` — validates coupon code, returns discount info
 
 **Frontend flow** (`TopicSelector`):
-1. User clicks "Unlock" on a locked chapter
-2. Inline panel shows price, coupon input, "Apply" button
-3. Applying coupon → calls validate-coupon → shows discounted price
-4. "Pay" button → calls create-order → opens Razorpay checkout modal → on success calls verify → `router.refresh()`
+1. User opens a subject card with the lock badge
+2. "Unlock" panel appears in the subject modal with coupon input + Pay button
+3. Pay → calls create-order with `subjectId` → opens Razorpay checkout → on success calls verify → `router.refresh()`
 
-**Purchase gating enforced at**:
-- `GET /api/practice/questions` — checks purchase before serving questions
+**Purchase gating** is centralized in `getAccessibleChapterIds(userId)` in `lib/queries.ts`. Used by:
+- `GET /api/practice/questions` — checks the requested chapter is accessible
 - `GET /api/assessment/questions` — checks all requested chapters are accessible
-- Telegram bot `ch:` callback — checks purchase before starting practice
-- `TopicSelector` UI — locked chapters can't be selected for assessment
+- Telegram bot `ch:` callback — checks before starting practice
+- `TopicSelector` UI — locked subjects can't be selected for assessment
 
 **Coupons table**: `code` (PK), `discount_percent`, `max_uses` (null = unlimited), `used_count`, `active`
 
@@ -145,14 +150,17 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 ## Content Availability
 
-- **Free**: Derivatives & Valuation (CA Finals) + all Audit chapters (CA Intermediate)
-- **Paid** (₹999/chapter, ₹299 with STUDY70 coupon): Foreign Exchange, International Finance, Interest Rate Risk
+- **Paid subjects** (₹999 per subject, ₹299 with STUDY70 coupon): AFM, Audit, FR — all CA Finals
+- **Free preview chapter per paid subject**: AFM derivatives/ch09 (Forwards Futures and Options), Audit quality-control/ch01 (Quality Control), FR framework-presentation/ch01 (Intro to Ind AS)
+- **Fully free subject**: `ca-inter-audit` (legacy CA Intermediate Audit) — every chapter accessible without purchase
 - **Coming Soon**: Chapters without questions show greyed-out "Coming soon" state in TopicSelector
 
 ## Subjects & Naming
 
-- **CA Intermediate — Audit** (`ca-inter-audit`): Real questions from CA partner (not AI-generated)
-- **CA Final — Advanced Financial Management** (`ca-final-afm`): Derivatives, Forex, International Finance, Interest Rate Risk
+- **CA Intermediate — Audit** (`ca-inter-audit`): Legacy fully-free subject — all chapters flagged `is_free_preview = true`
+- **CA Final — Auditing & Ethics** (`ca-final-audit`): Real questions from CA partner (not AI-generated)
+- **CA Final — Advanced Financial Management** (`ca-final-afm`): Derivatives, Forex, International Finance, Interest Rate Risk, Valuation, M&A
+- **CA Final — Financial Reporting** (`ca-final-fr`): Ind AS framework, measurement, disclosures, group accounts
 - Subject IDs use prefix convention: `ca-inter-*` = Intermediate, `ca-final-*` = Finals
 - The select page auto-categorizes subjects into exam level tabs using this prefix
 
@@ -162,7 +170,7 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 |-------|---------|
 | `subjects` | CA exam subjects |
 | `sections` | Sections within subjects (with exam weight %) |
-| `chapters` | Chapters within sections |
+| `chapters` | Chapters within sections (with `is_free_preview` flag) |
 | `questions` | MCQ question bank (stem, 4 options, correct, explanation, difficulty) |
 | `users` | Auth.js managed (+ `telegram_id` column) |
 | `accounts` | Auth.js OAuth accounts |
@@ -171,7 +179,7 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 | `assessment_attempts` | Saved assessment results (JSONB for scores, reviews, study plans) |
 | `telegram_link_codes` | Temporary codes for Telegram account linking (10 min expiry) |
 | `feedback` | User ratings and comments (1-5 stars) |
-| `purchases` | Payment records (id, user_id, chapter_id, razorpay IDs, amount, coupon, status) |
+| `purchases` | Payment records (id, user_id, subject_id, razorpay IDs, amount, coupon, status) |
 | `coupons` | Discount codes (code, discount_percent, max_uses, used_count, active) |
 
 ## Environment Variables
