@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getQuestionsForChapters, getAccessibleChapterIds } from '@/lib/queries'
+import { getQuestionsForChapters, getAccessibleChapterIds, getSubjectForChapter } from '@/lib/queries'
 import type { ClientQuestion } from '@/lib/types'
 
 export async function GET(request: Request) {
@@ -15,7 +15,15 @@ export async function GET(request: Request) {
 
   const accessible = await getAccessibleChapterIds(Number(session.user.id))
   if (!accessible.has(chapterId)) {
-    return NextResponse.json({ error: 'Chapter not purchased' }, { status: 403 })
+    const subject = await getSubjectForChapter(chapterId)
+    return NextResponse.json(
+      {
+        error: 'subject_not_purchased',
+        subjectId: subject?.id ?? null,
+        subjectName: subject?.name ?? null,
+      },
+      { status: 403 }
+    )
   }
 
   try {
