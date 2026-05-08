@@ -17,12 +17,14 @@ import { neon } from '@neondatabase/serverless'
 
 const QB_DIR = resolve(process.cwd(), 'data/QB AFM')
 
-// Filename → DB chapter ID. aq_qbank.csv is intentionally absent — its mapping
-// must be confirmed by the user before ingestion.
+// Filename → DB chapter ID. aq_qbank.csv contains supplementary FCFE/WACC/share-
+// valuation questions and is mapped to ch05 (Security Valuation) where its peers
+// live.
 const FILE_TO_CHAPTER: Record<string, string> = {
   'financial_policy_qbank.csv':   'ca-final-afm/strategy-risk-capbudget/ch01',
   'security_analysis_qbank.csv':  'ca-final-afm/security-portfolio/ch04',
   'security_valuation_qbank.csv': 'ca-final-afm/security-portfolio/ch05',
+  'aq_qbank.csv':                 'ca-final-afm/security-portfolio/ch05',
   'portfolio_mgmt_qbank.csv':     'ca-final-afm/security-portfolio/ch06',
   'securitization_qbank.csv':     'ca-final-afm/security-portfolio/ch07',
   'mutual_funds_qbank.csv':       'ca-final-afm/security-portfolio/ch08',
