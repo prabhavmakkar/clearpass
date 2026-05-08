@@ -93,9 +93,10 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 - `ca-final-afm/derivatives/ch09` — Introduction to Forwards Futures and Options (AFM)
 - `ca-final-audit/quality-control/ch01` — Quality Control — SQC-1 & SA 220 (Audit)
 - `ca-final-fr/framework-presentation/ch01` — Introduction to Indian Accounting Standards (FR)
+- `ca-final-idt/gst-levy-supply-procedures/ch01` — Supply under GST (IDT)
 - All `ca-inter-audit/...` chapters (legacy fully-free CA Intermediate subject)
 
-**Paid subjects**: AFM, Audit, FR (CA Finals). The legacy `ca-inter-audit` subject remains fully free.
+**Paid subjects**: AFM, Audit, FR, IDT (CA Finals). The legacy `ca-inter-audit` subject remains fully free.
 
 **API routes:**
 - `POST /api/payments/create-order` — accepts `{ subjectId, couponCode? }`, creates Razorpay order, stores pending purchase
@@ -150,8 +151,8 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 ## Content Availability
 
-- **Paid subjects** (₹999 per subject, ₹299 with STUDY70 coupon): AFM, Audit, FR — all CA Finals
-- **Free preview chapter per paid subject**: AFM derivatives/ch09 (Forwards Futures and Options), Audit quality-control/ch01 (Quality Control), FR framework-presentation/ch01 (Intro to Ind AS)
+- **Paid subjects** (₹999 per subject, ₹299 with STUDY70 coupon): AFM, Audit, FR, IDT — all CA Finals
+- **Free preview chapter per paid subject**: AFM derivatives/ch09 (Forwards Futures and Options), Audit quality-control/ch01 (Quality Control), FR framework-presentation/ch01 (Intro to Ind AS), IDT gst-levy-supply-procedures/ch01 (Supply under GST)
 - **Fully free subject**: `ca-inter-audit` (legacy CA Intermediate Audit) — every chapter accessible without purchase
 - **Coming Soon**: Chapters without questions show greyed-out "Coming soon" state in TopicSelector
 
@@ -161,6 +162,7 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 - **CA Final — Auditing & Ethics** (`ca-final-audit`): Real questions from CA partner (not AI-generated)
 - **CA Final — Advanced Financial Management** (`ca-final-afm`): Derivatives, Forex, International Finance, Interest Rate Risk, Valuation, M&A
 - **CA Final — Financial Reporting** (`ca-final-fr`): Ind AS framework, measurement, disclosures, group accounts
+- **CA Final — Indirect Tax Laws** (`ca-final-idt`): GST (levy, supply, ITC, registration, refunds), Customs, FTP
 - Subject IDs use prefix convention: `ca-inter-*` = Intermediate, `ca-final-*` = Finals
 - The select page auto-categorizes subjects into exam level tabs using this prefix
 

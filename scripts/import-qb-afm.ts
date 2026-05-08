@@ -109,7 +109,7 @@ function validateFile(filePath: string, fileName: string, dbChapterId: string | 
 
   if (parsed.length === 0) {
     errors.push('CSV is empty')
-    return { file: fileName, dbChapterId, rowCount: 0, errors, rows }
+    return { file: fileName, dbChapterId, rowCount: 0, errors, rows, skipped: false }
   }
 
   const headers = Object.keys(parsed[0])
