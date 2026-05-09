@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getSubjects, getSections, getChapters } from '@/lib/queries'
+import { posts } from '@/lib/blog/posts'
 
 const BASE = 'https://clearpass.snpventures.in'
 
@@ -11,11 +12,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticEntries: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: now, changeFrequency: 'weekly', priority: 1.0 },
     { url: `${BASE}/learn`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
+    { url: `${BASE}/blog`, lastModified: now, changeFrequency: 'weekly', priority: 0.9 },
     { url: `${BASE}/sign-in`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${BASE}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE}/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE}/refund`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   ]
+
+  const blogEntries: MetadataRoute.Sitemap = posts.map(p => ({
+    url: `${BASE}/blog/${p.slug}`,
+    lastModified: new Date(p.updatedISO),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }))
 
   const subjects = await getSubjects()
   const finalSubjects = subjects.filter(s => s.id.startsWith('ca-final-'))
@@ -44,5 +53,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  return [...staticEntries, ...subjectEntries, ...chapterEntries]
+  return [...staticEntries, ...blogEntries, ...subjectEntries, ...chapterEntries]
 }
