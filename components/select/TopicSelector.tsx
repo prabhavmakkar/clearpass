@@ -266,9 +266,6 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                     {isInter && (
                       <span className="rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-semibold text-green-700">Free</span>
                     )}
-                    {!owned && !isInter && (
-                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold text-gray-700">₹299</span>
-                    )}
                     <svg className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
