@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getQuestionsForChapters, getChaptersByIds, getAccessibleChapterIds, getSubjectForChapter } from '@/lib/queries'
+import { getQuestionsForChapters, getChaptersByIds, getAccessibleChapterIds } from '@/lib/queries'
 import { signSession } from '@/lib/sessionToken'
 import { nanoid } from 'nanoid'
 import type { ClientQuestion, Question, Chapter } from '@/lib/types'
@@ -79,14 +79,8 @@ export async function GET(request: Request) {
   const accessibleSet = await getAccessibleChapterIds(Number(session.user.id))
   const blocked = chapterIds.filter(id => !accessibleSet.has(id))
   if (blocked.length > 0) {
-    const blockedSubject = await getSubjectForChapter(blocked[0])
     return NextResponse.json(
-      {
-        error: 'subject_not_purchased',
-        blockedChapterIds: blocked,
-        subjectId: blockedSubject?.id ?? null,
-        subjectName: blockedSubject?.name ?? null,
-      },
+      { error: 'bundle_not_purchased', blockedChapterIds: blocked },
       { status: 403 }
     )
   }

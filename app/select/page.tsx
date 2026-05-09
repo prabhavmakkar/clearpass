@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth'
-import { getSubjects, getSections, getChapters, getQuestionCountsByChapter, getFreeChapterIds, getUserPurchasedSubjectIds } from '@/lib/queries'
+import { getSubjects, getSections, getChapters, getQuestionCountsByChapter, getFreeChapterIds, userOwnsCaFinalBundle } from '@/lib/queries'
 import { TopicSelector } from '@/components/select/TopicSelector'
 import { AppNav } from '@/components/AppNav'
 
@@ -24,11 +24,11 @@ export default async function SelectPage() {
     allSectionIds.push(...secs.map(sec => sec.id))
   }
 
-  const [allChapters, questionCounts, freeChapterIds, purchasedSubjectIds] = await Promise.all([
+  const [allChapters, questionCounts, freeChapterIds, ownsBundle] = await Promise.all([
     allSectionIds.length > 0 ? getChapters(allSectionIds) : Promise.resolve([]),
     getQuestionCountsByChapter(),
     getFreeChapterIds(),
-    session?.user?.id ? getUserPurchasedSubjectIds(Number(session.user.id)) : Promise.resolve([]),
+    session?.user?.id ? userOwnsCaFinalBundle(Number(session.user.id)) : Promise.resolve(false),
   ])
 
   return (
@@ -40,7 +40,7 @@ export default async function SelectPage() {
         chapters={allChapters}
         questionCounts={questionCounts}
         freeChapterIds={freeChapterIds}
-        purchasedSubjectIds={purchasedSubjectIds}
+        ownsBundle={ownsBundle}
       />
     </main>
   )

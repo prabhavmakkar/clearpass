@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { getCoupon } from '@/lib/queries'
 
-const BASE_PRICE_PAISE = 99900
+const BASE_PRICE_PAISE = 29900 // ₹299
 
 export async function POST(req: Request) {
   const session = await auth()

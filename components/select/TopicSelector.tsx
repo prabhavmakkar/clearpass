@@ -15,7 +15,7 @@ interface Props {
   chapters: Chapter[]
   questionCounts: Record<string, number>
   freeChapterIds: string[]
-  purchasedSubjectIds: string[]
+  ownsBundle: boolean
 }
 
 type ExamLevel = 'inter' | 'finals'
@@ -25,55 +25,41 @@ function getExamLevel(subjectId: string): ExamLevel {
   return 'finals'
 }
 
-export function TopicSelector({ subjects, sections, chapters, questionCounts, freeChapterIds, purchasedSubjectIds }: Props) {
+const COMING_SOON_CARDS: Array<{ id: string; shortName: string; examLevel: ExamLevel }> = [
+  { id: 'ca-final-dt-coming-soon', shortName: 'Direct Tax', examLevel: 'finals' },
+]
+
+export function TopicSelector({ subjects, sections, chapters, questionCounts, freeChapterIds, ownsBundle }: Props) {
   const router = useRouter()
-  const [examLevel, setExamLevel] = useState<ExamLevel>(() => {
-    const hasInter = subjects.some(s => getExamLevel(s.id) === 'inter')
-    return hasInter ? 'inter' : 'finals'
-  })
+  const [examLevel, setExamLevel] = useState<ExamLevel>('finals')
   const [openSubject, setOpenSubject] = useState<string | null>(null)
   const [selectedChapters, setSelectedChapters] = useState<Set<string>>(new Set())
-  const [unlockingSubject, setUnlockingSubject] = useState<string | null>(null)
+  const [showBundleModal, setShowBundleModal] = useState(false)
+  const [showComingSoon, setShowComingSoon] = useState<string | null>(null)
   const [couponCode, setCouponCode] = useState('')
   const [couponResult, setCouponResult] = useState<{ valid: boolean; discountPercent?: number; finalAmount?: number; error?: string } | null>(null)
   const [couponLoading, setCouponLoading] = useState(false)
   const [paymentLoading, setPaymentLoading] = useState(false)
 
   const freeSet = useMemo(() => new Set(freeChapterIds), [freeChapterIds])
-  const ownedSubjects = useMemo(() => new Set(purchasedSubjectIds), [purchasedSubjectIds])
 
   const filteredSubjects = useMemo(
     () => subjects.filter(s => getExamLevel(s.id) === examLevel),
     [subjects, examLevel]
   )
 
-  // Per-subject derived state
-  const subjectStats = useMemo(() => {
-    const stats: Record<string, {
-      totalQuestions: number
-      chaptersWithContent: number
-      totalChapters: number
-      hasPaidChapters: boolean
-      owned: boolean
-    }> = {}
-    for (const subject of subjects) {
-      const subChapters = chapters.filter(c => c.subjectId === subject.id)
-      const withContent = subChapters.filter(c => (questionCounts[c.id] ?? 0) > 0)
-      const totalQ = subChapters.reduce((sum, c) => sum + (questionCounts[c.id] ?? 0), 0)
-      const hasPaidChapters = subChapters.some(c => !freeSet.has(c.id) && (questionCounts[c.id] ?? 0) > 0)
-      stats[subject.id] = {
-        totalQuestions: totalQ,
-        chaptersWithContent: withContent.length,
-        totalChapters: subChapters.length,
-        hasPaidChapters,
-        owned: ownedSubjects.has(subject.id),
-      }
-    }
-    return stats
-  }, [subjects, chapters, questionCounts, freeSet, ownedSubjects])
+  const filteredComingSoon = useMemo(
+    () => COMING_SOON_CARDS.filter(c => c.examLevel === examLevel),
+    [examLevel]
+  )
+
+  function isSubjectAccessible(subjectId: string): boolean {
+    if (getExamLevel(subjectId) === 'inter') return true
+    return ownsBundle
+  }
 
   function isChapterAccessible(chId: string, subjectId: string): boolean {
-    return freeSet.has(chId) || ownedSubjects.has(subjectId)
+    return freeSet.has(chId) || isSubjectAccessible(subjectId)
   }
 
   function toggleChapter(id: string, subjectId: string) {
@@ -144,14 +130,13 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
     }
   }, [couponCode])
 
-  async function handleUnlockSubject(subjectId: string) {
+  async function handleUnlockBundle() {
     setPaymentLoading(true)
     try {
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subjectId,
           couponCode: couponResult?.valid ? couponCode.trim() : undefined,
         }),
       })
@@ -162,14 +147,14 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
         return
       }
 
-      const { orderId, amount, purchaseId, subjectName } = await res.json()
+      const { orderId, amount, purchaseId, bundleName } = await res.json()
 
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount,
         currency: 'INR',
         name: 'ClearPass',
-        description: subjectName ?? 'Subject Unlock',
+        description: bundleName ?? 'CA Finals Bundle',
         order_id: orderId,
         handler: async (response: { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string }) => {
           const verifyRes = await fetch('/api/payments/verify', {
@@ -183,7 +168,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
             }),
           })
           if (verifyRes.ok) {
-            setUnlockingSubject(null)
+            setShowBundleModal(false)
             setCouponCode('')
             setCouponResult(null)
             router.refresh()
@@ -211,73 +196,78 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
     ? modalChapters.filter(c => (questionCounts[c.id] ?? 0) > 0 && isChapterAccessible(c.id, openSubject))
     : []
   const allSelected = allAccessibleInModal.length > 0 && allAccessibleInModal.every(c => selectedChapters.has(c.id))
-  const modalSubjectStats = openSubject ? subjectStats[openSubject] : null
+  const modalSubjectAccessible = openSubject ? isSubjectAccessible(openSubject) : false
 
   const hasSelection = selectedChapters.size > 0
+  const showBundleBanner = examLevel === 'finals' && !ownsBundle
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12">
       <h1 className="mb-2 text-2xl font-black sm:text-3xl">Choose Your Exam</h1>
       <p className="mb-6 text-sm text-gray-500">Select your exam level, then pick a subject to explore chapters.</p>
 
-      {/* Exam Level Tabs */}
-      <div className="mb-8 flex rounded-xl border border-gray-200 p-1">
-        <button
-          onClick={() => setExamLevel('inter')}
-          className={`flex-1 rounded-lg px-4 py-3 text-sm font-bold transition-all ${
-            examLevel === 'inter'
-              ? 'bg-black text-white shadow-sm'
-              : 'text-gray-500 hover:text-gray-900'
-          }`}
-        >
-          CA Intermediate
-        </button>
+      <div className="mb-6 flex rounded-xl border border-gray-200 p-1">
         <button
           onClick={() => setExamLevel('finals')}
           className={`flex-1 rounded-lg px-4 py-3 text-sm font-bold transition-all ${
-            examLevel === 'finals'
-              ? 'bg-black text-white shadow-sm'
-              : 'text-gray-500 hover:text-gray-900'
+            examLevel === 'finals' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'
           }`}
         >
           CA Finals
         </button>
+        <button
+          onClick={() => setExamLevel('inter')}
+          className={`flex-1 rounded-lg px-4 py-3 text-sm font-bold transition-all ${
+            examLevel === 'inter' ? 'bg-black text-white shadow-sm' : 'text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          CA Intermediate
+        </button>
       </div>
 
-      {/* Subject Cards */}
-      {filteredSubjects.length === 0 ? (
+      {showBundleBanner && (
+        <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-gray-900 bg-gray-900 px-5 py-4 text-white">
+          <div className="min-w-0">
+            <p className="text-sm font-bold">Unlock all CA Finals subjects</p>
+            <p className="mt-0.5 text-xs text-gray-300">AFM, FR, Audit & IDT — full access for ₹299</p>
+          </div>
+          <button
+            onClick={() => setShowBundleModal(true)}
+            className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-bold text-gray-900 hover:bg-gray-100"
+          >
+            Unlock ₹299
+          </button>
+        </div>
+      )}
+
+      {filteredSubjects.length === 0 && filteredComingSoon.length === 0 ? (
         <div className="rounded-xl border border-gray-100 bg-gray-50 px-6 py-12 text-center">
           <p className="text-sm text-gray-400">No subjects available for this exam level yet.</p>
         </div>
       ) : (
         <div className="grid gap-4">
           {filteredSubjects.map(subject => {
-            const stats = subjectStats[subject.id]
-            const showLock = stats.hasPaidChapters && !stats.owned
+            const owned = isSubjectAccessible(subject.id)
+            const isInter = getExamLevel(subject.id) === 'inter'
             return (
               <button
                 key={subject.id}
                 onClick={() => setOpenSubject(subject.id)}
                 className="group w-full rounded-xl border border-gray-200 p-5 text-left shadow-sm transition-all hover:border-gray-300 hover:shadow-md active:scale-[0.99]"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold text-gray-900 group-hover:text-black">
-                      {subject.name.replace(/^CA (Intermediate|Final) — /, '')}
-                    </h3>
-                    <p className="mt-1.5 text-xs text-gray-500">
-                      {stats.totalQuestions} questions · {stats.chaptersWithContent}/{stats.totalChapters} chapters active
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-base font-bold text-gray-900 group-hover:text-black">
+                    {subject.name.replace(/^CA (Intermediate|Final) — /, '')}
+                  </h3>
                   <div className="flex shrink-0 items-center gap-2">
-                    {stats.owned && (
+                    {owned && !isInter && (
                       <span className="rounded-full bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-700">Unlocked</span>
                     )}
-                    {!stats.owned && !stats.hasPaidChapters && (
+                    {isInter && (
                       <span className="rounded-full bg-green-100 px-2.5 py-1 text-[10px] font-semibold text-green-700">Free</span>
                     )}
-                    {showLock && (
-                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold text-gray-700">&#8377;999</span>
+                    {!owned && !isInter && (
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold text-gray-700">₹299</span>
                     )}
                     <svg className="h-5 w-5 text-gray-400 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -287,10 +277,21 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
               </button>
             )
           })}
+          {filteredComingSoon.map(card => (
+            <button
+              key={card.id}
+              onClick={() => setShowComingSoon(card.shortName)}
+              className="group w-full rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5 text-left shadow-sm transition-all hover:border-gray-400"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-base font-bold text-gray-500">{card.shortName}</h3>
+                <span className="rounded-full bg-gray-200 px-2.5 py-1 text-[10px] font-semibold text-gray-600">Coming soon</span>
+              </div>
+            </button>
+          ))}
         </div>
       )}
 
-      {/* Floating assessment button */}
       {hasSelection && !openSubject && (
         <div className="fixed bottom-6 left-4 right-4 z-40 mx-auto max-w-2xl sm:left-auto sm:right-auto sm:w-full sm:px-6">
           <button
@@ -302,20 +303,78 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
         </div>
       )}
 
-      {/* Chapter Modal */}
-      {openSubject && modalSubject && modalSubjectStats && (
+      {showComingSoon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => setShowComingSoon(null)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div onClick={e => e.stopPropagation()} className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="mb-2 text-lg font-black text-gray-900">{showComingSoon} is coming soon</h2>
+            <p className="mb-5 text-sm text-gray-500">We&apos;re putting the finishing touches on this subject. Check back shortly.</p>
+            <button
+              onClick={() => setShowComingSoon(null)}
+              className="w-full rounded-lg bg-black px-4 py-2.5 text-sm font-bold text-white hover:opacity-80"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showBundleModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setShowBundleModal(false)}>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div onClick={e => e.stopPropagation()} className="relative w-full rounded-t-2xl bg-white p-6 shadow-2xl sm:max-w-md sm:rounded-2xl">
+            <h2 className="text-lg font-black text-gray-900">Unlock all CA Finals subjects</h2>
+            <p className="mt-1 text-sm text-gray-500">AFM, FR, Audit & IDT — every chapter, every question.</p>
+            <p className="mt-4 mb-3 text-2xl font-black text-gray-900">
+              ₹{couponResult?.valid ? (couponResult.finalAmount! / 100).toFixed(2) : '299'}
+            </p>
+            <div className="mb-2 flex gap-2">
+              <input
+                type="text"
+                value={couponCode}
+                onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null) }}
+                placeholder="Coupon code (optional)"
+                className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-sm uppercase placeholder:normal-case placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
+              />
+              <button
+                onClick={validateCoupon}
+                disabled={couponLoading || !couponCode.trim()}
+                className="rounded-md border border-gray-300 px-3 py-2 text-xs font-medium hover:bg-gray-100 disabled:opacity-50"
+              >
+                {couponLoading ? '...' : 'Apply'}
+              </button>
+            </div>
+            {couponResult && (
+              <p className={`mb-2 text-xs ${couponResult.valid ? 'text-green-700' : 'text-red-600'}`}>
+                {couponResult.valid ? `${couponResult.discountPercent}% discount applied!` : couponResult.error}
+              </p>
+            )}
+            <button
+              onClick={handleUnlockBundle}
+              disabled={paymentLoading}
+              className="mt-2 w-full rounded-lg bg-black px-4 py-3 text-sm font-bold text-white hover:opacity-80 disabled:opacity-50"
+            >
+              {paymentLoading ? 'Processing...' : `Pay ₹${couponResult?.valid ? (couponResult.finalAmount! / 100).toFixed(2) : '299'}`}
+            </button>
+            <button
+              onClick={() => setShowBundleModal(false)}
+              className="mt-2 w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {openSubject && modalSubject && (
         <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" onClick={() => setOpenSubject(null)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div
             onClick={e => e.stopPropagation()}
             className="relative flex max-h-[85vh] w-full flex-col rounded-t-2xl bg-white shadow-2xl sm:max-w-lg sm:rounded-2xl"
           >
-            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-              <div>
-                <h2 className="text-lg font-black">{modalSubject.name.replace(/^CA (Intermediate|Final) — /, '')}</h2>
-                <p className="mt-0.5 text-xs text-gray-500">{modalChapters.length} chapters</p>
-              </div>
+              <h2 className="text-lg font-black">{modalSubject.name.replace(/^CA (Intermediate|Final) — /, '')}</h2>
               <button
                 onClick={() => setOpenSubject(null)}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"
@@ -326,66 +385,20 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
               </button>
             </div>
 
-            {/* Subject Unlock Banner — only for paid, not-owned subjects */}
-            {modalSubjectStats.hasPaidChapters && !modalSubjectStats.owned && (
-              <div className="border-b border-gray-100 bg-amber-50/50 px-5 py-3">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-xs text-amber-800">
-                    Unlock the entire subject for <span className="line-through">&#8377;999</span>{' '}
-                    <span className="font-bold text-green-700">&#8377;299</span> with{' '}
-                    <span className="rounded bg-black px-1.5 py-0.5 font-mono text-[10px] font-bold text-white">STUDY70</span>
-                  </p>
+            {!modalSubjectAccessible && (
+              <div className="border-b border-gray-100 bg-gray-900 px-5 py-3 text-white">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs">Unlock all CA Finals for ₹299</p>
                   <button
-                    onClick={() => setUnlockingSubject(unlockingSubject === modalSubject.id ? null : modalSubject.id)}
-                    className="shrink-0 rounded-md bg-black px-3 py-1 text-xs font-semibold text-white hover:opacity-80"
+                    onClick={() => setShowBundleModal(true)}
+                    className="shrink-0 rounded-md bg-white px-3 py-1 text-xs font-semibold text-gray-900 hover:bg-gray-100"
                   >
                     Unlock
                   </button>
                 </div>
-                {unlockingSubject === modalSubject.id && (
-                  <div className="mt-3 rounded-lg border border-gray-200 bg-white p-3">
-                    <p className="mb-2 text-xs text-gray-500">
-                      Price: <span className="line-through text-gray-400">&#8377;999</span>{' '}
-                      {couponResult?.valid ? (
-                        <span className="font-bold text-green-700">&#8377;{(couponResult.finalAmount! / 100).toFixed(2)}</span>
-                      ) : (
-                        <span className="font-bold">&#8377;999</span>
-                      )}
-                    </p>
-                    <div className="mb-2 flex gap-2">
-                      <input
-                        type="text"
-                        value={couponCode}
-                        onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponResult(null) }}
-                        placeholder="Coupon code"
-                        className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-sm uppercase placeholder:normal-case placeholder:text-gray-400 focus:border-gray-400 focus:outline-none"
-                      />
-                      <button
-                        onClick={validateCoupon}
-                        disabled={couponLoading || !couponCode.trim()}
-                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium hover:bg-gray-100 disabled:opacity-50"
-                      >
-                        {couponLoading ? '...' : 'Apply'}
-                      </button>
-                    </div>
-                    {couponResult && (
-                      <p className={`mb-2 text-xs ${couponResult.valid ? 'text-green-700' : 'text-red-600'}`}>
-                        {couponResult.valid ? `${couponResult.discountPercent}% discount applied!` : couponResult.error}
-                      </p>
-                    )}
-                    <button
-                      onClick={() => handleUnlockSubject(modalSubject.id)}
-                      disabled={paymentLoading}
-                      className="w-full rounded-md bg-black px-4 py-2 text-sm font-bold text-white hover:opacity-80 disabled:opacity-50"
-                    >
-                      {paymentLoading ? 'Processing...' : `Pay ₹${couponResult?.valid ? (couponResult.finalAmount! / 100).toFixed(2) : '999'}`}
-                    </button>
-                  </div>
-                )}
               </div>
             )}
 
-            {/* Select All / Deselect */}
             {allAccessibleInModal.length > 0 && (
               <div className="border-b border-gray-100 px-5 py-2.5">
                 <button
@@ -397,7 +410,6 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
               </div>
             )}
 
-            {/* Chapter List */}
             <div className="flex-1 overflow-y-auto px-5 py-3">
               <div className="space-y-1">
                 {modalSections.map(section => {
@@ -432,7 +444,7 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                                 </svg>
                                 <span className="text-sm text-gray-400">{ch.name}</span>
                               </div>
-                              <span className="text-[10px] text-gray-400">Subject locked</span>
+                              <span className="text-[10px] text-gray-400">Locked</span>
                             </div>
                           )
                         }
@@ -450,15 +462,12 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
                               {isFree && (
                                 <span className="shrink-0 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">Free preview</span>
                               )}
-                              {!isFree && modalSubjectStats.owned && (
-                                <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700">Unlocked</span>
-                              )}
                             </label>
                             <button
                               onClick={() => goToPractice(ch.id)}
                               className="shrink-0 text-xs text-gray-400 underline underline-offset-2 hover:text-black"
                             >
-                              Practice &rarr;
+                              Practice →
                             </button>
                           </div>
                         )
@@ -469,14 +478,13 @@ export function TopicSelector({ subjects, sections, chapters, questionCounts, fr
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="border-t border-gray-100 px-5 py-4">
               {selectedInModal > 0 ? (
                 <button
                   onClick={goToAssessment}
                   className="w-full rounded-xl bg-black px-6 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-80"
                 >
-                  Take Assessment ({selectedInModal} chapter{selectedInModal !== 1 ? 's' : ''}) &rarr;
+                  Take Assessment ({selectedInModal} chapter{selectedInModal !== 1 ? 's' : ''}) →
                 </button>
               ) : (
                 <p className="text-center text-xs text-gray-400">Select chapters above to take an assessment</p>

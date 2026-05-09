@@ -12,7 +12,6 @@ import {
   getAttemptsByUser,
   getFreeChapterIds,
   getAccessibleChapterIds,
-  getSubjectForChapter,
 } from '@/lib/queries'
 import type { Question } from '@/lib/types'
 
@@ -222,14 +221,11 @@ function setupHandlers(bot: Bot) {
 
     const accessible = await getAccessibleChapterIds(user.id)
     if (!accessible.has(chapterId)) {
-      const subject = await getSubjectForChapter(chapterId)
-      const subjectName = subject?.name ?? 'this subject'
       await ctx.answerCallbackQuery()
       await ctx.editMessageText(
-        `🔒 *${escapeMarkdown(subjectName)} is locked*\n\n` +
-        '💰 Unlock the entire subject for ~₹999~ just *₹299*\n' +
-        '🎟 Use coupon code: `STUDY70` (70% off!)\n\n' +
-        '💡 _Try the free preview chapter (🆓) in this subject to get started!_\n\n' +
+        '🔒 *Locked*\n\n' +
+        '💰 Unlock all CA Finals subjects (AFM, FR, Audit, IDT) for *₹299*\n\n' +
+        '💡 _Try a free preview chapter (🆓) in any subject to get a feel._\n\n' +
         '👉 Visit clearpass.snpventures.in/select to unlock.',
         { parse_mode: 'Markdown' }
       )

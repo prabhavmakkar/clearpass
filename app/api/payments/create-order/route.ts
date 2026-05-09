@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { nanoid } from 'nanoid'
 import {
-  getSubjects,
-  hasUserPurchasedSubject,
+  userOwnsCaFinalBundle,
   getCoupon,
   createPurchase,
+  CA_FINAL_BUNDLE_SUBJECT_ID,
 } from '@/lib/queries'
 
-const BASE_PRICE_PAISE = 99900 // ₹999
+const BASE_PRICE_PAISE = 29900 // ₹299
+const BUNDLE_NAME = 'ClearPass — CA Finals Bundle'
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -16,26 +17,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { subjectId, couponCode } = await req.json()
-  if (!subjectId || typeof subjectId !== 'string') {
-    return NextResponse.json({ error: 'subjectId required' }, { status: 400 })
-  }
+  // Body may include couponCode; subjectId is ignored (bundle is the only product).
+  const body = await req.json().catch(() => ({}))
+  const couponCode: unknown = body.couponCode
 
-  const subjects = await getSubjects()
-  const subject = subjects.find(s => s.id === subjectId)
-  if (!subject) {
-    return NextResponse.json({ error: 'Unknown subject' }, { status: 400 })
-  }
-
-  const alreadyPurchased = await hasUserPurchasedSubject(Number(session.user.id), subjectId)
-  if (alreadyPurchased) {
+  const userId = Number(session.user.id)
+  const alreadyOwned = await userOwnsCaFinalBundle(userId)
+  if (alreadyOwned) {
     return NextResponse.json({ error: 'Already purchased' }, { status: 409 })
   }
 
   let amount = BASE_PRICE_PAISE
   let validCoupon: string | null = null
 
-  if (couponCode) {
+  if (typeof couponCode === 'string' && couponCode.trim()) {
     const coupon = await getCoupon(couponCode)
     if (!coupon || !coupon.active) {
       return NextResponse.json({ error: 'Invalid coupon code' }, { status: 400 })
@@ -65,7 +60,7 @@ export async function POST(req: Request) {
       amount,
       currency: 'INR',
       receipt,
-      notes: { subject_id: subjectId, subject_name: subject.name },
+      notes: { bundle: 'ca-final', name: BUNDLE_NAME },
     }),
   })
 
@@ -80,8 +75,8 @@ export async function POST(req: Request) {
 
   await createPurchase({
     id: purchaseId,
-    userId: Number(session.user.id),
-    subjectId,
+    userId,
+    subjectId: CA_FINAL_BUNDLE_SUBJECT_ID,
     razorpayOrderId: order.id,
     amount,
     originalAmount: BASE_PRICE_PAISE,
@@ -94,6 +89,6 @@ export async function POST(req: Request) {
     originalAmount: BASE_PRICE_PAISE,
     currency: 'INR',
     purchaseId,
-    subjectName: subject.name,
+    bundleName: BUNDLE_NAME,
   })
 }
