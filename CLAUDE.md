@@ -85,9 +85,11 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 ### 6. Payments (Razorpay)
 
-**Base price**: ₹999 per **subject** (one purchase unlocks every chapter in that subject). Coupons can reduce this:
-- `STUDY70` — 70% off → ₹299 (public)
-- `TEST99` — 99% off → ₹9.99 (test coupon to exercise the real Razorpay path in production)
+**Base price**: **₹299 for the CA Finals bundle** — a single purchase unlocks every chapter across AFM, FR, Audit, and IDT. Stored as `purchases.subject_id = 'ca-final-bundle'`.
+
+Coupons:
+- `TEST99` — 99% off → ₹2.99 (test coupon to exercise the real Razorpay path in production)
+- `STUDY70` — deactivated (kept in `coupons` table inactive for historical reference)
 
 **Free preview chapters** (one per paid subject): determined by `chapters.is_free_preview` boolean column. Currently:
 - `ca-final-afm/derivatives/ch09` — Introduction to Forwards Futures and Options (AFM)
@@ -96,17 +98,17 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 - `ca-final-idt/gst-levy-supply-procedures/ch01` — Supply under GST (IDT)
 - All `ca-inter-audit/...` chapters (legacy fully-free CA Intermediate subject)
 
-**Paid subjects**: AFM, Audit, FR, IDT (CA Finals). The legacy `ca-inter-audit` subject remains fully free.
+**Paid bundle**: AFM, Audit, FR, IDT (CA Finals) — purchased together. The legacy `ca-inter-audit` subject remains fully free.
 
 **API routes:**
-- `POST /api/payments/create-order` — accepts `{ subjectId, couponCode? }`, creates Razorpay order, stores pending purchase
+- `POST /api/payments/create-order` — accepts `{ couponCode? }` (no subjectId — bundle is the only product), creates Razorpay order at ₹299, stores pending purchase with `subject_id = 'ca-final-bundle'`
 - `POST /api/payments/verify` — HMAC-SHA256 signature verification, marks purchase as paid
 - `POST /api/payments/validate-coupon` — validates coupon code, returns discount info
 
 **Frontend flow** (`TopicSelector`):
-1. User opens a subject card with the lock badge
-2. "Unlock" panel appears in the subject modal with coupon input + Pay button
-3. Pay → calls create-order with `subjectId` → opens Razorpay checkout → on success calls verify → `router.refresh()`
+1. Persistent "Unlock all CA Finals for ₹299" banner shown above subject cards (Finals tab, not yet owned)
+2. Click → bundle modal with optional coupon input + Pay button
+3. Pay → calls create-order → opens Razorpay checkout → on success calls verify → `router.refresh()`
 
 **Purchase gating** is centralized in `getAccessibleChapterIds(userId)` in `lib/queries.ts`. Used by:
 - `GET /api/practice/questions` — checks the requested chapter is accessible
@@ -151,7 +153,7 @@ Webhook-based bot using grammy. Lazy-initialized via `getBot()` to avoid build-t
 
 ## Content Availability
 
-- **Paid subjects** (₹999 per subject, ₹299 with STUDY70 coupon): AFM, Audit, FR, IDT — all CA Finals
+- **Paid bundle** (₹299, all four CA Finals subjects together): AFM, Audit, FR, IDT
 - **Free preview chapter per paid subject**: AFM derivatives/ch09 (Forwards Futures and Options), Audit quality-control/ch01 (Quality Control), FR framework-presentation/ch01 (Intro to Ind AS), IDT gst-levy-supply-procedures/ch01 (Supply under GST)
 - **Fully free subject**: `ca-inter-audit` (legacy CA Intermediate Audit) — every chapter accessible without purchase
 - **Coming Soon**: Chapters without questions show greyed-out "Coming soon" state in TopicSelector
