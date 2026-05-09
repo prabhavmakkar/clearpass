@@ -11,8 +11,7 @@ import {
   getChaptersByIds,
   getQuestionsForChapters,
   insertSubject,
-  getUserPurchasedSubjectIds,
-  hasUserPurchasedSubject,
+  userOwnsCaFinalBundle,
   getAccessibleChapterIds,
   getFreeChapterIds,
   getSubjectForChapter,
@@ -100,29 +99,15 @@ describe('insertSubject', () => {
   })
 })
 
-describe('getUserPurchasedSubjectIds', () => {
-  it('returns subject ids for paid rows', async () => {
-    mockSql.mockResolvedValue([{ subject_id: 'ca-final-afm' }, { subject_id: 'ca-final-audit' }])
-    const result = await getUserPurchasedSubjectIds(7)
-    expect(result).toEqual(['ca-final-afm', 'ca-final-audit'])
-    expect(mockSql).toHaveBeenCalledTimes(1)
-  })
-
-  it('returns empty array when no purchases', async () => {
-    mockSql.mockResolvedValue([])
-    expect(await getUserPurchasedSubjectIds(7)).toEqual([])
-  })
-})
-
-describe('hasUserPurchasedSubject', () => {
-  it('returns true when a row exists', async () => {
+describe('userOwnsCaFinalBundle', () => {
+  it('returns true when a paid bundle row exists', async () => {
     mockSql.mockResolvedValue([{ '?column?': 1 }])
-    expect(await hasUserPurchasedSubject(7, 'ca-final-afm')).toBe(true)
+    expect(await userOwnsCaFinalBundle(7)).toBe(true)
   })
 
-  it('returns false when no row exists', async () => {
+  it('returns false when no paid bundle row exists', async () => {
     mockSql.mockResolvedValue([])
-    expect(await hasUserPurchasedSubject(7, 'ca-final-afm')).toBe(false)
+    expect(await userOwnsCaFinalBundle(7)).toBe(false)
   })
 })
 
@@ -141,17 +126,17 @@ describe('getAccessibleChapterIds', () => {
     expect(mockSql).toHaveBeenCalledTimes(1)
   })
 
-  it('returns free-preview + chapters of owned subjects when userId is set', async () => {
+  it('returns free-preview + every ca-final-* chapter when bundle is owned', async () => {
     mockSql.mockResolvedValue([
       { id: 'ca-final-afm/derivatives/ch09' },
       { id: 'ca-final-afm/strategy-risk-capbudget/ch01' },
-      { id: 'ca-final-afm/strategy-risk-capbudget/ch02' },
+      { id: 'ca-final-fr/framework-presentation/ch01' },
     ])
     const result = await getAccessibleChapterIds(7)
     expect(result).toEqual(new Set([
       'ca-final-afm/derivatives/ch09',
       'ca-final-afm/strategy-risk-capbudget/ch01',
-      'ca-final-afm/strategy-risk-capbudget/ch02',
+      'ca-final-fr/framework-presentation/ch01',
     ]))
   })
 })

@@ -222,15 +222,18 @@ export async function insertFeedback(userId: number, attemptId: string | null, r
 
 // ── Purchases & Coupons ─────────────────────────────────────────────
 
-export async function getUserPurchasedSubjectIds(userId: number): Promise<string[]> {
-  const sql = getDb()
-  const rows = await sql`SELECT subject_id FROM purchases WHERE user_id = ${userId} AND status = 'paid'`
-  return rows.map(r => r.subject_id as string)
-}
+// Per-subject ownership functions are gone — pricing is now bundle-based.
+// Use userOwnsCaFinalBundle as the single ownership predicate.
 
-export async function hasUserPurchasedSubject(userId: number, subjectId: string): Promise<boolean> {
+export const CA_FINAL_BUNDLE_SUBJECT_ID = 'ca-final-bundle'
+
+export async function userOwnsCaFinalBundle(userId: number): Promise<boolean> {
   const sql = getDb()
-  const rows = await sql`SELECT 1 FROM purchases WHERE user_id = ${userId} AND subject_id = ${subjectId} AND status = 'paid' LIMIT 1`
+  const rows = await sql`SELECT 1 FROM purchases
+    WHERE user_id = ${userId}
+      AND subject_id = ${CA_FINAL_BUNDLE_SUBJECT_ID}
+      AND status = 'paid'
+    LIMIT 1`
   return rows.length > 0
 }
 
@@ -274,9 +277,8 @@ export async function getFreeChapterIds(): Promise<string[]> {
   return rows.map(r => r.id as string)
 }
 
-// Single source of truth for "can this user see this chapter?"
-// - userId === null: only free-preview chapters
-// - userId === number: free-preview chapters + every chapter of every subject they own
+// Free-preview chapters ∪ all ca-final-* chapters (if user owns the bundle).
+// userId === null only sees free-preview chapters.
 export async function getAccessibleChapterIds(userId: number | null): Promise<Set<string>> {
   const sql = getDb()
   if (userId === null) {
@@ -287,8 +289,13 @@ export async function getAccessibleChapterIds(userId: number | null): Promise<Se
     SELECT id FROM chapters WHERE is_free_preview = true
     UNION
     SELECT c.id FROM chapters c
-    JOIN purchases p ON p.subject_id = c.subject_id
-    WHERE p.user_id = ${userId} AND p.status = 'paid'`
+    WHERE c.subject_id LIKE 'ca-final-%'
+      AND EXISTS (
+        SELECT 1 FROM purchases p
+        WHERE p.user_id = ${userId}
+          AND p.subject_id = ${CA_FINAL_BUNDLE_SUBJECT_ID}
+          AND p.status = 'paid'
+      )`
   return new Set(rows.map(r => r.id as string))
 }
 
