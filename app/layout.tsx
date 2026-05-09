@@ -18,11 +18,11 @@ export const metadata: Metadata = {
     default: 'ClearPass — CA Prep, Finally Done Right',
     template: '%s | ClearPass',
   },
-  description: 'Diagnostic assessments, adaptive practice, and readiness reports for Chartered Accountancy students. CA Inter Audit and CA Final Derivatives & Valuation — free to use.',
-  keywords: ['CA exam preparation', 'Chartered Accountancy', 'CA Inter Audit', 'CA Final AFM', 'Derivatives and Valuation', 'MCQ practice', 'readiness report', 'ICAI'],
+  description: 'CA Final exam prep — 4,000+ ICAI-style MCQs across AFM, FR, Auditing & Ethics, and Indirect Tax Laws. Diagnostic assessments, adaptive practice, and readiness reports. Unlock the full bundle for ₹299.',
+  keywords: ['CA Final exam preparation', 'CA Final AFM', 'CA Final FR', 'CA Final Audit', 'CA Final IDT', 'Chartered Accountancy MCQs', 'ICAI mock test', 'CA practice questions', 'Financial Reporting Ind AS', 'Advanced Financial Management', 'Indirect Tax Laws GST'],
   openGraph: {
-    title: 'ClearPass — CA Prep, Finally Done Right',
-    description: 'Diagnostic assessments, adaptive practice, and readiness reports for Chartered Accountancy students.',
+    title: 'ClearPass — CA Final Prep with 4,000+ ICAI-style MCQs',
+    description: 'AFM, FR, Auditing & Ethics, and IDT — all four CA Final subjects, ₹299 for the full bundle.',
     url: 'https://clearpass.snpventures.in',
     siteName: 'ClearPass',
     locale: 'en_IN',
@@ -30,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ClearPass — CA Prep, Finally Done Right',
-    description: 'Diagnostic assessments, adaptive practice, and readiness reports for CA students.',
+    title: 'ClearPass — CA Final Prep, Finally Done Right',
+    description: '4,000+ ICAI-style MCQs across AFM, FR, Audit, and IDT. ₹299 for the full bundle.',
   },
   robots: {
     index: true,

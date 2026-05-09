@@ -3,10 +3,12 @@ import Hero from '@/components/landing/Hero'
 import Story from '@/components/landing/Story'
 import Features from '@/components/landing/Features'
 import Waitlist from '@/components/landing/Waitlist'
+import { StructuredData } from '@/components/landing/StructuredData'
 
 export default function HomePage() {
   return (
     <div className="bg-white text-black">
+      <StructuredData />
       <Nav />
       <Hero />
       <hr className="mx-auto max-w-5xl border-gray-100" />
