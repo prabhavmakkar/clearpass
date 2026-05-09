@@ -21,7 +21,7 @@ export default function Hero() {
       <motion.div {...reveal}>
         <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-gray-200 px-4 py-1.5 text-xs text-gray-500">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-          Live now: AFM, FR, Audit &amp; IDT (CA Finals) — try one free chapter per subject
+          ₹299 unlocks all CA Finals — AFM, FR, Audit &amp; IDT
         </div>
         <h1 className="mb-6 text-5xl font-black leading-[1.05] tracking-tight md:text-7xl">
           CA prep, finally{' '}
