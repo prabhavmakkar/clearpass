@@ -1,22 +1,29 @@
 import Nav from '@/components/landing/Nav'
 import Hero from '@/components/landing/Hero'
+import LiveTicker from '@/components/landing/LiveTicker'
 import Story from '@/components/landing/Story'
 import Features from '@/components/landing/Features'
-import Waitlist from '@/components/landing/Waitlist'
+import Comparison from '@/components/landing/Comparison'
+import Pricing from '@/components/landing/Pricing'
+import Testimonials from '@/components/landing/Testimonials'
+import FAQ from '@/components/landing/FAQ'
+import FinalCTA from '@/components/landing/Waitlist'
 import { StructuredData } from '@/components/landing/StructuredData'
 
 export default function HomePage() {
   return (
-    <div className="bg-white text-black">
+    <>
       <StructuredData />
       <Nav />
       <Hero />
-      <hr className="mx-auto max-w-5xl border-gray-100" />
+      <LiveTicker />
       <Story />
-      <hr className="mx-auto max-w-5xl border-gray-100" />
       <Features />
-      <hr className="mx-auto max-w-5xl border-gray-100" />
-      <Waitlist />
-    </div>
+      <Comparison />
+      <Pricing />
+      <Testimonials />
+      <FAQ />
+      <FinalCTA />
+    </>
   )
 }
