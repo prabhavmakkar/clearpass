@@ -3,41 +3,53 @@
 import { motion } from 'framer-motion'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
-export default function CTA() {
+// Despite the legacy filename, this is the editorial "Final CTA" block.
+// Keeping the file path so /app/page.tsx imports don't break elsewhere.
+export default function FinalCTA() {
   const reveal = useScrollReveal()
 
   return (
-    <section className="mx-auto max-w-5xl px-6 pb-32 pt-20">
-      <motion.div {...reveal} className="rounded-2xl bg-black p-8 md:p-14">
-        <h2 className="mb-3 text-3xl font-black tracking-tight text-white md:text-4xl">
-          Ready to find your weak spots?
-        </h2>
-        <p className="mb-8 max-w-lg text-sm leading-relaxed text-gray-400">
-          Your first chapter is completely free — no card needed.
-          Take a diagnostic test and get a detailed readiness report in minutes.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href="/sign-in"
-            className="rounded-lg bg-white px-7 py-3.5 text-sm font-bold text-black transition-opacity hover:opacity-90"
-          >
-            Get Started Free →
-          </a>
-          <a
-            href="https://t.me/ClearpassCAbot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg border border-gray-700 px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:border-gray-500"
-          >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.492-1.302.48-.428-.012-1.252-.242-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-            </svg>
-            Practice on Telegram
-          </a>
+    <section className="mx-auto max-w-6xl px-6 pb-28 pt-20">
+      <motion.div
+        {...reveal}
+        className="rounded-3xl p-10 md:p-14 text-center relative overflow-hidden"
+        style={{ background: 'var(--color-ink)', color: 'white' }}
+      >
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            background:
+              'radial-gradient(circle at 30% 20%, rgba(217,80,30,0.5), transparent 50%), radial-gradient(circle at 80% 80%, rgba(15,27,61,0.6), transparent 50%)',
+          }}
+        />
+        <div className="relative">
+          <div className="text-[11px] uppercase tracking-[0.18em] opacity-60 mb-4">Stop guessing</div>
+          <h2 className="font-display text-5xl md:text-7xl leading-[0.95] max-w-3xl mx-auto">
+            Find out where you actually stand.<br />
+            <em className="not-italic" style={{ color: 'var(--color-accent)' }}>In fifteen minutes.</em>
+          </h2>
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="/sign-in"
+              className="px-7 py-4 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+              style={{ background: 'white', color: 'var(--color-ink)' }}
+            >
+              Take your first test — free →
+            </a>
+            <a
+              href="https://t.me/ClearpassCAbot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-7 py-4 rounded-xl border font-semibold text-sm hover:bg-white/5 transition-colors"
+              style={{ borderColor: 'rgba(255,255,255,0.2)' }}
+            >
+              Open Telegram bot
+            </a>
+          </div>
+          <p className="mt-6 text-xs opacity-60">
+            First diagnostic test is free. ₹299 unlocks the full library — only when you&apos;re ready.
+          </p>
         </div>
-        <p className="mt-4 text-xs text-gray-600">
-          Free chapter included. No spam, no gimmicks.
-        </p>
       </motion.div>
     </section>
   )
