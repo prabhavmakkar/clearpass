@@ -12,10 +12,10 @@ interface AttemptSummary {
   createdAt: string
 }
 
-const TIER_COLORS: Record<string, string> = {
-  strong: 'bg-green-100 text-green-800',
-  moderate: 'bg-yellow-100 text-yellow-800',
-  weak: 'bg-red-100 text-red-800',
+const TIER_STYLES: Record<string, { bg: string; fg: string }> = {
+  strong:   { bg: 'var(--color-success-soft)', fg: '#0E5A3D' },
+  moderate: { bg: 'var(--color-warning-soft)', fg: '#7A5A0F' },
+  weak:     { bg: 'var(--color-error-soft)',   fg: '#7A1F1F' },
 }
 
 export function ProfileCard() {
@@ -34,7 +34,10 @@ export function ProfileCard() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" />
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-2"
+          style={{ borderColor: 'var(--color-line)', borderTopColor: 'var(--color-ink)' }}
+        />
       </div>
     )
   }
@@ -42,73 +45,139 @@ export function ProfileCard() {
   if (!session) return null
 
   const bestScore = attempts.length > 0 ? Math.max(...attempts.map(a => a.overallScore)) : null
-  const avgScore = attempts.length > 0 ? attempts.reduce((s, a) => s + a.overallScore, 0) / attempts.length : null
   const totalQuestions = attempts.reduce((s, a) => s + a.totalCount, 0)
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-8 flex items-center gap-5">
-        {session.user?.image && (
-          <img src={session.user.image} alt="" className="h-16 w-16 rounded-full" referrerPolicy="no-referrer" />
+    <div className="mx-auto max-w-3xl px-6 py-10">
+      {/* Header */}
+      <div className="card p-6 md:p-8 mb-6 flex items-center gap-5">
+        {session.user?.image ? (
+          <img
+            src={session.user.image}
+            alt=""
+            className="h-16 w-16 rounded-full"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div
+            className="h-16 w-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
+            style={{ background: 'var(--color-navy)' }}
+          >
+            {session.user?.name?.[0]?.toUpperCase() ?? '?'}
+          </div>
         )}
-        <div>
-          <h1 className="text-2xl font-black">{session.user?.name}</h1>
-          <p className="text-sm text-gray-500">{session.user?.email}</p>
+        <div className="flex-1">
+          <p className="eyebrow mb-1">Profile</p>
+          <h1 className="font-display text-3xl leading-tight">{session.user?.name}</h1>
+          <p className="text-xs text-[var(--color-muted)] mt-0.5">{session.user?.email}</p>
         </div>
       </div>
 
-      <div className="mb-8 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-gray-200 p-5 text-center">
-          <p className="text-2xl font-bold">{attempts.length}</p>
-          <p className="mt-1 text-xs text-gray-500">Tests Taken</p>
+      {/* Stat row */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="card p-5 text-center">
+          <p className="font-display text-4xl">{loading ? '—' : attempts.length}</p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted)]">
+            Tests taken
+          </p>
         </div>
-        <div className="rounded-xl border border-gray-200 p-5 text-center">
-          <p className="text-2xl font-bold">{bestScore !== null ? `${Math.round(bestScore)}%` : '—'}</p>
-          <p className="mt-1 text-xs text-gray-500">Best Score</p>
+        <div className="card p-5 text-center">
+          <p className="font-display text-4xl">
+            {bestScore !== null ? `${Math.round(bestScore)}%` : '—'}
+          </p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted)]">
+            Best score
+          </p>
         </div>
-        <div className="rounded-xl border border-gray-200 p-5 text-center">
-          <p className="text-2xl font-bold">{totalQuestions}</p>
-          <p className="mt-1 text-xs text-gray-500">Questions Attempted</p>
+        <div className="card p-5 text-center">
+          <p className="font-display text-4xl">{totalQuestions}</p>
+          <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-[var(--color-muted)]">
+            Questions
+          </p>
         </div>
       </div>
 
+      {/* Streak placeholder card — wired up in Phase 4 (derivedStats) */}
+      <div className="card p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="eyebrow mb-1">Daily streak</p>
+            <p className="font-display text-5xl flex items-end gap-2">
+              12<span className="fire text-3xl">🔥</span>
+            </p>
+            <p className="text-xs text-[var(--color-muted)] mt-1">Longest: 23 days · 2 rest tokens left</p>
+          </div>
+          <div className="hidden sm:flex flex-col items-end gap-1.5">
+            <span className="text-[10px] text-[var(--color-muted)]">last 21 days</span>
+            <div className="grid grid-cols-7 gap-0.5">
+              {Array.from({ length: 21 }).map((_, i) => {
+                const intensities = [3, 2, 4, 3, 1, 4, 3, 2, 3, 4, 2, 3, 4, 1, 3, 4, 4, 2, 3, 4, 3]
+                return <div key={i} className={`h-3 w-3 rounded-sm heat-${intensities[i]}`} />
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent attempts */}
       {attempts.length > 0 && (
         <div className="mb-8">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-black">Recent Attempts</h2>
-            <a href="/history" className="text-xs font-medium text-gray-500 hover:text-gray-900">View all →</a>
+            <h2 className="font-display text-2xl">Recent attempts</h2>
+            <a
+              href="/history"
+              className="text-xs font-medium text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+            >
+              View all →
+            </a>
           </div>
           <div className="space-y-2">
-            {attempts.slice(0, 5).map(a => (
-              <a
-                key={a.id}
-                href={`/history/${a.id}`}
-                className="flex items-center justify-between rounded-xl border border-gray-200 p-4 transition-colors hover:border-gray-400"
-              >
-                <div>
-                  <p className="text-sm font-semibold">{a.correctCount}/{a.totalCount} — {Math.round(a.overallScore)}%</p>
-                  <p className="mt-0.5 text-xs text-gray-400">
-                    {new Date(a.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${TIER_COLORS[a.readinessTier] ?? 'bg-gray-100'}`}>
-                  {a.readinessTier}
-                </span>
-              </a>
-            ))}
+            {attempts.slice(0, 5).map(a => {
+              const tier = TIER_STYLES[a.readinessTier] ?? { bg: 'var(--color-line-soft)', fg: 'var(--color-muted)' }
+              return (
+                <a
+                  key={a.id}
+                  href={`/history/${a.id}`}
+                  className="flex items-center justify-between card p-4 transition-all hover:border-[#C7C0AF]"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">
+                      <span className="font-mono">{a.correctCount}/{a.totalCount}</span> ·{' '}
+                      <span className="font-mono">{Math.round(a.overallScore)}%</span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-[var(--color-muted)]">
+                      {new Date(a.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full px-3 py-1 text-xs font-medium capitalize"
+                    style={{ background: tier.bg, color: tier.fg }}
+                  >
+                    {a.readinessTier}
+                  </span>
+                </a>
+              )
+            })}
           </div>
         </div>
       )}
 
-      <div className="flex gap-4">
-        <a href="/select" className="rounded-xl bg-black px-8 py-3 text-sm font-bold text-white hover:opacity-80">
-          Take a Test
+      <div className="flex gap-3">
+        <a
+          href="/select"
+          className="rounded-xl px-7 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+          style={{ background: 'var(--color-ink)' }}
+        >
+          Take a test <span style={{ color: 'var(--color-accent)' }}>→</span>
         </a>
         <button
           onClick={() => signOut({ callbackUrl: '/' })}
-          className="rounded-xl border border-gray-200 px-8 py-3 text-sm font-bold transition-colors hover:border-gray-400"
+          className="rounded-xl border px-7 py-3 text-sm font-bold transition-colors hover:border-[#C7C0AF]"
+          style={{ borderColor: 'var(--color-line)' }}
         >
-          Sign Out
+          Sign out
         </button>
       </div>
     </div>

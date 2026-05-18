@@ -19,7 +19,7 @@ export function QuestionCard({ question, questionNumber, selectedIndex, onSelect
       exit={{ opacity: 0, y: -16 }}
       transition={{ duration: 0.25 }}
     >
-      <p className="mb-6 text-base font-medium leading-relaxed md:text-lg">
+      <p className="mb-7 text-base md:text-lg font-medium leading-relaxed">
         {question.stem}
       </p>
       <div className="space-y-3">
@@ -29,17 +29,25 @@ export function QuestionCard({ question, questionNumber, selectedIndex, onSelect
             <button
               key={`${questionNumber}-${i}`}
               onClick={() => onSelect(i)}
-              className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3.5 text-left text-sm transition-all duration-150
-                ${isSelected
-                  ? 'border-black bg-black text-white'
-                  : 'border-gray-200 bg-white text-gray-800 hover:border-gray-400'
-                }`}
+              className="flex w-full items-start gap-3 rounded-xl px-4 py-3.5 text-left text-sm transition-all duration-150 active:scale-[0.99]"
+              style={{
+                border: '1.5px solid',
+                borderColor: isSelected ? 'var(--color-ink)' : 'var(--color-line)',
+                background: isSelected ? 'var(--color-ink)' : 'var(--color-paper)',
+                color: isSelected ? 'white' : 'var(--color-ink-soft)',
+              }}
             >
-              <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs font-bold
-                ${isSelected ? 'border-white text-white' : 'border-gray-400 text-gray-500'}`}>
+              <span
+                className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold font-mono"
+                style={{
+                  border: '1.5px solid',
+                  borderColor: isSelected ? 'rgba(255,255,255,0.8)' : 'var(--color-muted)',
+                  color: isSelected ? 'white' : 'var(--color-muted)',
+                }}
+              >
                 {optionLabels[i]}
               </span>
-              <span>{option}</span>
+              <span className="leading-snug">{option}</span>
             </button>
           )
         })}

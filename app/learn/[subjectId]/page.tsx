@@ -53,7 +53,7 @@ export default async function LearnSubjectPage({ params }: PageProps) {
   const shortName = subject.name.replace(/^CA Final — /, '')
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <Nav />
       <div className="mx-auto max-w-3xl px-6 py-16">
         <nav className="mb-6 text-xs text-gray-500">

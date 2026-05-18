@@ -1,31 +1,49 @@
 import type { SectionScore } from '@/lib/types'
 
 const TIER_STYLES = {
-  strong: { bar: 'bg-green-500', badge: 'bg-green-50 text-green-700', label: 'Strong' },
-  moderate: { bar: 'bg-yellow-400', badge: 'bg-yellow-50 text-yellow-700', label: 'Moderate' },
-  weak: { bar: 'bg-red-400', badge: 'bg-red-50 text-red-700', label: 'Needs work' },
+  strong:   { bar: 'var(--color-success)', badgeBg: 'var(--color-success-soft)', badgeFg: '#0E5A3D', label: 'Strong' },
+  moderate: { bar: 'var(--color-warning)', badgeBg: 'var(--color-warning-soft)', badgeFg: '#7A5A0F', label: 'Moderate' },
+  weak:     { bar: 'var(--color-error)',   badgeBg: 'var(--color-error-soft)',   badgeFg: '#7A1F1F', label: 'Needs work' },
 }
 
 interface Props { sectionScores: SectionScore[] }
 
 export function SectionBreakdown({ sectionScores }: Props) {
   return (
-    <div className="mb-10">
-      <h2 className="mb-1 text-xl font-bold">Gap Analysis by Section</h2>
-      <p className="mb-5 text-sm text-gray-500">Weak sections indicate deeper syllabus gaps.</p>
+    <div className="card p-6 md:p-7 mb-6">
+      <p className="eyebrow mb-2">By section</p>
+      <h2 className="font-display text-2xl md:text-3xl mb-5">Where the marks went</h2>
       <div className="flex flex-col gap-4">
         {sectionScores.map(s => {
           const styles = TIER_STYLES[s.tier]
           return (
-            <div key={s.sectionId} className="rounded-xl border border-gray-100 p-4">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-semibold">{s.sectionName}</span>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${styles.badge}`}>{styles.label}</span>
+            <div key={s.sectionId}>
+              <div className="mb-1.5 flex items-baseline justify-between">
+                <span className="text-sm font-medium">{s.sectionName}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs font-bold" style={{ color: styles.bar }}>
+                    {s.percentage}%
+                  </span>
+                  <span
+                    className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    style={{ background: styles.badgeBg, color: styles.badgeFg }}
+                  >
+                    {styles.label}
+                  </span>
+                </div>
               </div>
-              <div className="mb-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                <div className={`h-full rounded-full ${styles.bar} transition-all duration-700`} style={{ width: `${s.percentage}%` }} />
+              <div
+                className="h-2 w-full overflow-hidden rounded-full"
+                style={{ background: 'var(--color-line-soft)' }}
+              >
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${s.percentage}%`, background: styles.bar, transition: 'width 1s cubic-bezier(.2,.8,.2,1)' }}
+                />
               </div>
-              <p className="text-xs text-gray-400">{s.correct}/{s.total} correct ({s.percentage}%)</p>
+              <p className="mt-1 text-[11px] font-mono text-[var(--color-muted)]">
+                {s.correct}/{s.total} correct
+              </p>
             </div>
           )
         })}

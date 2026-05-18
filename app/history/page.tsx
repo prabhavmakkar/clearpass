@@ -3,7 +3,7 @@ import { HistoryList } from '@/components/history/HistoryList'
 
 export default function HistoryPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <AppNav label="History" />
       <HistoryList />
     </main>

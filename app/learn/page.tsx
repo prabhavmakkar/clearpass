@@ -42,7 +42,7 @@ export default async function LearnIndexPage() {
   })
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <Nav />
       <div className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="mb-4 text-4xl font-black tracking-tight">CA Final Syllabus & Practice Subjects</h1>

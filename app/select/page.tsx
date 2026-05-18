@@ -10,8 +10,8 @@ export default async function SelectPage() {
   const subjects = await getSubjects()
   if (subjects.length === 0) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white">
-        <p className="text-sm text-gray-500">No subjects available. Ask your admin to upload a syllabus.</p>
+      <main className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-[var(--color-muted)]">No subjects available. Ask your admin to upload a syllabus.</p>
       </main>
     )
   }
@@ -32,7 +32,7 @@ export default async function SelectPage() {
   ])
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <AppNav />
       <TopicSelector
         subjects={subjects}

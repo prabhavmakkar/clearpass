@@ -76,7 +76,7 @@ export default async function LearnChapterPage({ params }: PageProps) {
   const subjectShort = subject.name.replace(/^CA Final — /, '')
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <Nav />
       <article className="mx-auto max-w-3xl px-6 py-16">
         <nav className="mb-6 text-xs text-gray-500">

@@ -56,7 +56,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <Nav />
       <article className="mx-auto max-w-3xl px-6 py-16">
         <script

@@ -64,38 +64,65 @@ export function AssessmentShell() {
     router.push('/assessment/results')
   }
 
-  if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-black" /></div>
-  if (error) return <div className="flex min-h-[60vh] items-center justify-center"><p className="text-sm text-red-500">{error}</p></div>
+  if (loading) return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: 'var(--color-line)', borderTopColor: 'var(--color-ink)' }} />
+    </div>
+  )
+  if (error) return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>
+    </div>
+  )
   if (questions.length === 0) return null
 
   const answeredCount = answers.filter(a => a !== null).length
   const allAnswered = answeredCount === questions.length
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
+    <div className="mx-auto max-w-2xl px-6 py-10">
       <ProgressBar current={currentIndex + 1} total={questions.length} />
-      <AnimatePresence mode="wait">
-        <QuestionCard
-          key={currentIndex}
-          question={questions[currentIndex]}
-          questionNumber={currentIndex + 1}
-          selectedIndex={answers[currentIndex]}
-          onSelect={handleSelect}
-        />
-      </AnimatePresence>
-      <div className="mt-8 flex items-center justify-between">
-        <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}
-          className="text-sm text-gray-500 underline underline-offset-4 disabled:opacity-30">← Previous</button>
+      <div className="card p-6 md:p-8">
+        <AnimatePresence mode="wait">
+          <QuestionCard
+            key={currentIndex}
+            question={questions[currentIndex]}
+            questionNumber={currentIndex + 1}
+            selectedIndex={answers[currentIndex]}
+            onSelect={handleSelect}
+          />
+        </AnimatePresence>
+      </div>
+      <div className="mt-6 flex items-center justify-between">
+        <button
+          onClick={() => setCurrentIndex(i => Math.max(0, i - 1))}
+          disabled={currentIndex === 0}
+          className="text-sm text-[var(--color-muted)] underline underline-offset-4 disabled:opacity-30"
+        >
+          ← Previous
+        </button>
         {currentIndex < questions.length - 1 && (
-          <button onClick={() => setCurrentIndex(i => i + 1)}
-            className="text-sm text-gray-800 underline underline-offset-4">Next →</button>
+          <button
+            onClick={() => setCurrentIndex(i => i + 1)}
+            className="text-sm text-[var(--color-ink)] underline underline-offset-4 font-medium"
+          >
+            Next →
+          </button>
         )}
       </div>
       {(currentIndex === questions.length - 1 || allAnswered) && (
         <div className="mt-8 text-center">
-          <button onClick={handleSubmit} disabled={!allAnswered || isSubmitting}
-            className="rounded-xl bg-black px-10 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-80 disabled:opacity-40">
-            {isSubmitting ? 'Submitting…' : 'Submit Assessment →'}
+          <button
+            onClick={handleSubmit}
+            disabled={!allAnswered || isSubmitting}
+            className="rounded-xl px-10 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            style={{ background: 'var(--color-ink)' }}
+          >
+            {isSubmitting ? 'Submitting…' : (
+              <>
+                Submit Assessment <span style={{ color: 'var(--color-accent)' }}>→</span>
+              </>
+            )}
           </button>
         </div>
       )}

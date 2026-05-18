@@ -2,7 +2,7 @@ import { AdminShell } from '@/components/admin/AdminShell'
 
 export default function AdminPage() {
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <AdminShell />
     </main>
   )

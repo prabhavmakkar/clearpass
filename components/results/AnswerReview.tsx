@@ -8,9 +8,11 @@ function FilterButton({ active, onClick, children }: { active: boolean; onClick:
   return (
     <button
       onClick={onClick}
-      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-        active ? 'bg-black text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-      }`}
+      className="rounded-full px-3 py-1 text-xs font-medium transition-colors"
+      style={{
+        background: active ? 'var(--color-ink)' : 'var(--color-line-soft)',
+        color: active ? 'white' : 'var(--color-muted)',
+      }}
     >
       {children}
     </button>
@@ -29,9 +31,12 @@ export function AnswerReview({ questions }: { questions: QuestionReview[] }) {
   const wrongCount = questions.filter(q => !q.isCorrect).length
 
   return (
-    <div className="mt-10">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-black">Answer Review</h2>
+    <div className="mt-8">
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <p className="eyebrow mb-1">Answer review</p>
+          <h2 className="font-display text-2xl md:text-3xl">Every question, every answer</h2>
+        </div>
         <div className="flex gap-2">
           <FilterButton active={filter === 'all'} onClick={() => setFilter('all')}>
             All ({questions.length})
@@ -45,32 +50,51 @@ export function AnswerReview({ questions }: { questions: QuestionReview[] }) {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filtered.map((q, i) => (
-          <div key={i} className={`rounded-xl border p-5 ${q.isCorrect ? 'border-green-100 bg-green-50/30' : 'border-red-100 bg-red-50/30'}`}>
-            <div className="mb-1 flex items-center gap-2 text-xs text-gray-400">
+          <div
+            key={i}
+            className="card p-5"
+            style={{
+              borderColor: q.isCorrect ? '#BEDFCF' : '#F4C8B5',
+              background: q.isCorrect ? 'rgba(236,246,241,0.4)' : 'rgba(251,237,236,0.4)',
+            }}
+          >
+            <div className="mb-2 flex items-center gap-2 text-[11px] text-[var(--color-muted)]">
               <span className="capitalize">{q.difficulty}</span>
               <span>·</span>
               <span>{q.chapterName}</span>
             </div>
-            <p className="mb-3 text-sm font-medium text-gray-900">{q.stem}</p>
+            <p className="mb-3 text-sm font-medium leading-snug">{q.stem}</p>
             <div className="space-y-1.5">
               {q.options.map((opt, oi) => {
                 const isUserPick = q.userAnswer === oi
                 const isCorrect = q.correctIndex === oi
-                let className = 'rounded-lg border px-3 py-2 text-xs'
 
+                let style: React.CSSProperties = {
+                  border: '1px solid var(--color-line)',
+                  color: 'var(--color-muted)',
+                }
+                let extraClass = ''
                 if (isCorrect) {
-                  className += ' border-green-300 bg-green-50 text-green-800 font-semibold'
+                  style = {
+                    border: '1px solid #BEDFCF',
+                    background: 'var(--color-success-soft)',
+                    color: '#0E5A3D',
+                    fontWeight: 600,
+                  }
                 } else if (isUserPick && !isCorrect) {
-                  className += ' border-red-300 bg-red-50 text-red-700 line-through'
-                } else {
-                  className += ' border-gray-100 text-gray-500'
+                  style = {
+                    border: '1px solid #F4C8B5',
+                    background: 'var(--color-error-soft)',
+                    color: '#7A1F1F',
+                  }
+                  extraClass = 'line-through'
                 }
 
                 return (
-                  <div key={oi} className={className}>
-                    <span className="mr-2 font-bold">{OPTION_LABELS[oi]}</span>
+                  <div key={oi} className={`rounded-lg px-3 py-2 text-xs ${extraClass}`} style={style}>
+                    <span className="mr-2 font-bold font-mono">{OPTION_LABELS[oi]}</span>
                     {opt}
                     {isCorrect && <span className="ml-2">✓</span>}
                     {isUserPick && !isCorrect && <span className="ml-2">✗</span>}
@@ -79,8 +103,11 @@ export function AnswerReview({ questions }: { questions: QuestionReview[] }) {
               })}
             </div>
             {q.explanation && (
-              <p className="mt-3 rounded-lg bg-white/60 p-3 text-xs text-gray-600">
-                <span className="font-semibold">Explanation:</span> {q.explanation}
+              <p
+                className="mt-3 rounded-lg p-3 text-xs leading-relaxed"
+                style={{ background: 'rgba(255,255,255,0.7)', color: 'var(--color-ink-soft)' }}
+              >
+                <span className="font-semibold">Why: </span>{q.explanation}
               </p>
             )}
           </div>

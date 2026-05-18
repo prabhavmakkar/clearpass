@@ -16,10 +16,16 @@ export default async function LinkTelegramPage({ searchParams }: { searchParams:
 
   if (!params.code || !params.tgId) {
     return (
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen">
         <AppNav />
         <div className="mx-auto max-w-md px-6 py-20 text-center">
-          <p className="text-sm text-red-500">Invalid link. Please use the link from the Telegram bot.</p>
+          <div className="card p-8">
+            <p className="eyebrow mb-2">Link error</p>
+            <h1 className="font-display text-2xl mb-2">Invalid link</h1>
+            <p className="text-sm text-[var(--color-muted)]">
+              Please use the link from the Telegram bot — send /start to the bot to get a fresh one.
+            </p>
+          </div>
         </div>
       </main>
     )
@@ -28,10 +34,16 @@ export default async function LinkTelegramPage({ searchParams }: { searchParams:
   const userId = await consumeTelegramLinkCode(params.code)
   if (!userId || userId !== Number(session.user.id)) {
     return (
-      <main className="min-h-screen bg-white">
+      <main className="min-h-screen">
         <AppNav />
         <div className="mx-auto max-w-md px-6 py-20 text-center">
-          <p className="text-sm text-red-500">Link expired or invalid. Please try again from the Telegram bot with /start.</p>
+          <div className="card p-8">
+            <p className="eyebrow mb-2">Link expired</p>
+            <h1 className="font-display text-2xl mb-2">Try again</h1>
+            <p className="text-sm text-[var(--color-muted)]">
+              This link has expired or doesn&apos;t match your account. Go back to the Telegram bot and send /start for a new one.
+            </p>
+          </div>
         </div>
       </main>
     )
@@ -40,18 +52,31 @@ export default async function LinkTelegramPage({ searchParams }: { searchParams:
   await linkTelegramId(userId, Number(params.tgId))
 
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen">
       <AppNav />
       <div className="mx-auto max-w-md px-6 py-20 text-center">
-        <div className="mb-4 text-4xl">✓</div>
-        <h1 className="mb-2 text-2xl font-black">Telegram Linked!</h1>
-        <p className="mb-6 text-sm text-gray-500">
-          Your Telegram account is now connected to ClearPass.
-          Go back to Telegram and send /practice to start.
-        </p>
-        <a href="https://t.me/ClearpassCAbot" className="rounded-xl bg-black px-8 py-3 text-sm font-bold text-white hover:opacity-80">
-          Back to Telegram
-        </a>
+        <div className="card p-8">
+          <div
+            className="mx-auto mb-4 h-14 w-14 rounded-full flex items-center justify-center text-2xl text-white"
+            style={{ background: 'var(--color-success)' }}
+          >
+            ✓
+          </div>
+          <p className="eyebrow mb-2">All set</p>
+          <h1 className="font-display text-3xl mb-3">Telegram linked.</h1>
+          <p className="mb-6 text-sm text-[var(--color-muted)] leading-relaxed">
+            Your Telegram account is now connected to ClearPass.
+            Go back to Telegram and send <span className="font-mono">/practice</span> to start.
+          </p>
+          <a
+            href="https://t.me/ClearpassCAbot"
+            className="inline-flex items-center gap-2 rounded-xl px-7 py-3 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+            style={{ background: 'var(--color-ink)' }}
+          >
+            Back to Telegram
+            <span style={{ color: 'var(--color-accent)' }}>→</span>
+          </a>
+        </div>
       </div>
     </main>
   )
