@@ -1,7 +1,44 @@
 @import "tailwindcss";
 
-/* Safari < 15.4 fix: override oklch defaults with hex */
+/* ── Editorial theme tokens (new-design) ─────────────────────────────
+   The visual identity: warm paper background, Instrument Serif display,
+   Geist body, JetBrains Mono numbers, single burnt-orange accent. */
 @theme {
+  /* Surfaces & ink */
+  --color-paper: #FFFFFF;
+  --color-bg: #FAF8F2;
+  --color-ink: #0A0A0A;
+  --color-ink-soft: #2A2A2A;
+  --color-muted: #8B8276;
+  --color-line: #E7E2D8;
+  --color-line-soft: #F0EBE0;
+
+  /* Brand accents */
+  --color-accent: #D9501E;       /* burnt orange — streak, fire, highlights */
+  --color-accent-soft: #FFF1EA;
+  --color-navy: #0F1B3D;         /* deep ink-blue — primary CTAs, dark panels */
+
+  /* Semantic */
+  --color-success: #16855B;
+  --color-success-soft: #ECF6F1;
+  --color-warning: #B7791F;
+  --color-warning-soft: #FFF6E1;
+  --color-error: #C53030;
+  --color-error-soft: #FBEDEC;
+
+  /* Heatmap ramps (orange family) */
+  --color-heat-0: #F0EBE0;
+  --color-heat-1: #F6D9CB;
+  --color-heat-2: #F0B198;
+  --color-heat-3: #E47C50;
+  --color-heat-4: #C53E0E;
+
+  /* Typography */
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-sans: var(--font-geist, "Geist"), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains, "JetBrains Mono"), ui-monospace, monospace;
+
+  /* Legacy gray scale — kept for any unmigrated components */
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
   --color-gray-200: #e5e7eb;
@@ -18,20 +55,149 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: var(--font-inter, sans-serif);
-  background: #ffffff;
-  color: #000000;
+  font-family: var(--font-sans);
+  background: var(--color-bg);
+  color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   margin: 0;
+  background-image:
+    radial-gradient(at 8% 12%, rgba(217,80,30,0.04) 0px, transparent 50%),
+    radial-gradient(at 92% 88%, rgba(15,27,61,0.04) 0px, transparent 50%);
+  min-height: 100vh;
 }
 
-/* Blog post body — simple typography for HTML rendered from posts.ts */
-.blog-body { color: #1f2937; }
-.blog-body p { margin-block: 1rem; line-height: 1.7; font-size: 1rem; }
-.blog-body h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 0.75rem; color: #111827; }
-.blog-body ul, .blog-body ol { padding-left: 1.5rem; margin-block: 1rem; line-height: 1.7; }
+/* Paper grain — subtle multiply overlay across the whole page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.06 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: multiply;
+  opacity: 0.35;
+}
+/* Push content above the grain layer */
+body > * { position: relative; z-index: 2; }
+
+/* ── Reusable utility classes ── */
+.font-display { font-family: var(--font-display); letter-spacing: -0.015em; }
+.font-mono    { font-family: var(--font-mono); }
+.card         { background: var(--color-paper); border: 1px solid var(--color-line); border-radius: 16px; box-shadow: 0 1px 2px rgba(10,10,10,0.04), 0 8px 24px -8px rgba(10,10,10,0.08); }
+.card-flat    { background: var(--color-paper); border: 1px solid var(--color-line); border-radius: 16px; }
+.eyebrow      { font-size: 11px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--color-accent); font-weight: 600; }
+
+/* ── Motion primitives ── */
+@keyframes firepulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.fire { animation: firepulse 1.8s ease-in-out infinite; display: inline-block; }
+
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+.shake { animation: shake .35s ease both; }
+
+/* Hero collage motion */
+.hero-collage { perspective: 1200px; transform-style: preserve-3d; }
+.hero-collage::before {
+  content: "";
+  position: absolute; inset: -15%;
+  z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(217,80,30,0.14), transparent 55%),
+    radial-gradient(circle at 75% 78%, rgba(15,27,61,0.12), transparent 55%);
+  filter: blur(28px);
+  animation: heroAmbient 14s ease-in-out infinite;
+}
+@keyframes heroAmbient {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  50%      { transform: translate(24px, -14px) scale(1.06); }
+}
+.hero-floater {
+  position: absolute; z-index: 1;
+  opacity: 0;
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  transition: transform .55s cubic-bezier(.2,.8,.2,1);
+  animation: heroFade .85s ease-out forwards;
+  animation-delay: var(--enter-delay, 0.5s);
+}
+@keyframes heroFade { to { opacity: 1; } }
+.hero-bobber {
+  display: block;
+  transform: rotate(var(--rest, 0deg));
+  animation:
+    heroBobIn .9s cubic-bezier(.2,.8,.2,1) backwards,
+    heroBob 7s ease-in-out infinite;
+  animation-delay:
+    var(--enter-delay, 0.5s),
+    calc(var(--enter-delay, 0.5s) + .9s + var(--bob-offset, 0s));
+}
+@keyframes heroBobIn {
+  0%   { transform: rotate(0deg) translateY(48px) scale(.94); opacity: 0; }
+  55%  { transform: rotate(var(--rest, 0deg)) translateY(-10px) scale(1.02); opacity: 1; }
+  100% { transform: rotate(var(--rest, 0deg)) translateY(0) scale(1); opacity: 1; }
+}
+@keyframes heroBob {
+  0%, 100% { transform: rotate(var(--rest, 0deg)) translateY(0); }
+  50%      { transform: rotate(var(--rest, 0deg)) translateY(-10px); }
+}
+.hero-bobber:hover {
+  animation: none;
+  transform: rotate(0deg) translateY(-10px) scale(1.04);
+  transition: transform .4s cubic-bezier(.2,.8,.2,1);
+  z-index: 10;
+}
+
+.hero-stagger > * {
+  opacity: 0; transform: translateY(14px);
+  animation: heroStagger .75s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.hero-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.hero-stagger > *:nth-child(2) { animation-delay: 0.18s; }
+.hero-stagger > *:nth-child(3) { animation-delay: 0.32s; }
+.hero-stagger > *:nth-child(4) { animation-delay: 0.46s; }
+.hero-stagger > *:nth-child(5) { animation-delay: 0.60s; }
+@keyframes heroStagger { to { opacity: 1; transform: translateY(0); } }
+
+.underline-draw {
+  display: block; transform-origin: left center;
+  transform: scaleX(0) skewX(-6deg);
+  animation: underlineDraw 1s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: 0.78s;
+}
+@keyframes underlineDraw { to { transform: scaleX(1) skewX(-6deg); } }
+
+.hero-ring-anim {
+  stroke-dasharray: 264;
+  stroke-dashoffset: 264;
+  animation: heroRingFill 1.7s cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: 0.95s;
+}
+@keyframes heroRingFill { to { stroke-dashoffset: 58; } }
+
+/* Heatmap squares */
+.heat-0 { background: var(--color-heat-0); }
+.heat-1 { background: var(--color-heat-1); }
+.heat-2 { background: var(--color-heat-2); }
+.heat-3 { background: var(--color-heat-3); }
+.heat-4 { background: var(--color-heat-4); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-floater, .hero-bobber, .hero-stagger > *, .underline-draw,
+  .hero-collage::before, .hero-ring-anim, .fire {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .underline-draw { transform: scaleX(1) skewX(-6deg) !important; }
+  .hero-ring-anim { stroke-dashoffset: 58 !important; }
+}
+
+/* Blog post body — re-themed for editorial reading */
+.blog-body { color: var(--color-ink-soft); font-size: 1.0625rem; line-height: 1.75; }
+.blog-body p { margin-block: 1rem; }
+.blog-body h2 { font-family: var(--font-display); font-size: 2rem; font-weight: 400; letter-spacing: -0.015em; margin-top: 2.5rem; margin-bottom: 0.5rem; color: var(--color-ink); }
+.blog-body ul, .blog-body ol { padding-left: 1.5rem; margin-block: 1rem; }
 .blog-body ul { list-style: disc; }
 .blog-body ol { list-style: decimal; }
 .blog-body li { margin-block: 0.4rem; }
-.blog-body strong { font-weight: 600; color: #111827; }
+.blog-body strong { font-weight: 600; color: var(--color-ink); }
 .blog-body em { font-style: italic; }
