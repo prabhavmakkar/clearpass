@@ -22,8 +22,8 @@ export function NodeBreakdown({ chapterScores }: Props) {
               className="flex items-center justify-between rounded-xl px-4 py-3"
               style={{ background: 'var(--color-bg)', border: '1px solid var(--color-line-soft)' }}
             >
-              <div className="flex-1 pr-4 min-w-0">
-                <p className="text-sm font-medium truncate">{cs.chapterName}</p>
+              <div className="flex-1 pr-3 min-w-0">
+                <p className="text-sm font-medium line-clamp-2 break-words">{cs.chapterName}</p>
                 <div className="mt-1.5 h-1.5 w-full rounded-full" style={{ background: 'var(--color-line-soft)' }}>
                   <div
                     className="h-1.5 rounded-full transition-all"

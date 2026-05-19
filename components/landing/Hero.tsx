@@ -78,7 +78,7 @@ export default function Hero() {
             <span className="mx-1 text-[var(--color-line)]">·</span>
             <span>CA Finals · May 2026 attempt</span>
           </div>
-          <h1 className="font-display text-[3.5rem] md:text-7xl lg:text-[5.5rem] leading-[0.92] tracking-tight">
+          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[0.95] sm:leading-[0.92] tracking-tight">
             CA prep,<br />
             finally{' '}
             <em className="not-italic relative inline-block">
@@ -145,7 +145,7 @@ export default function Hero() {
         </div>
 
         {/* Right: floating product collage */}
-        <div ref={collageRef} className="hero-collage relative h-[460px] lg:h-[520px]">
+        <div ref={collageRef} className="hero-collage relative h-[360px] sm:h-[460px] lg:h-[520px] mt-4 lg:mt-0">
           {/* Card A: main report */}
           <div
             className="hero-floater"
@@ -200,9 +200,9 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Card B: streak */}
+          {/* Card B: streak — hidden on tiny screens to avoid overlap with Card A */}
           <div
-            className="hero-floater"
+            className="hero-floater hidden sm:block"
             data-depth="22"
             style={{ bottom: '1.5rem', left: 0, width: 200, ['--enter-delay' as never]: '.7s' } as React.CSSProperties}
           >
@@ -222,9 +222,9 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Card C: weak-spot callout */}
+          {/* Card C: weak-spot callout — hidden on tiny screens to reduce overlap */}
           <div
-            className="hero-floater"
+            className="hero-floater hidden sm:block"
             data-depth="18"
             style={{ top: '0.5rem', right: 0, width: 230, ['--enter-delay' as never]: '.85s' } as React.CSSProperties}
           >
@@ -245,9 +245,9 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Card D: question peek */}
+          {/* Card D: question peek — hidden on tiny screens to reduce overlap */}
           <div
-            className="hero-floater"
+            className="hero-floater hidden sm:block"
             data-depth="26"
             style={{ bottom: 0, right: '1.5rem', width: 220, ['--enter-delay' as never]: '1.0s' } as React.CSSProperties}
           >
