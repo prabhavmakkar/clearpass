@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { useStats } from '@/hooks/useStats'
 
 const NAV_LINKS = [
   { href: '/select', label: 'Test Yourself' },
@@ -13,6 +14,8 @@ const NAV_LINKS = [
 export function AppNav({ label }: { label?: string }) {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+  const { stats } = useStats()
+  const streak = stats?.streak.current ?? 0
 
   return (
     <nav
@@ -34,15 +37,15 @@ export function AppNav({ label }: { label?: string }) {
 
         {/* Desktop nav */}
         <div className="hidden items-center gap-2 md:flex">
-          {/* Daily streak chip — placeholder value until /api/me/stats lands */}
-          {session && (
+          {/* Daily streak chip — real data via useStats() */}
+          {session && streak > 0 && (
             <div
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-paper border text-xs"
               style={{ borderColor: 'var(--color-line)' }}
               title="Daily practice streak"
             >
               <span className="fire">🔥</span>
-              <span className="font-mono font-bold">12</span>
+              <span className="font-mono font-bold">{streak}</span>
               <span className="text-[var(--color-muted)]">day streak</span>
             </div>
           )}
@@ -116,12 +119,12 @@ export function AppNav({ label }: { label?: string }) {
       {/* Mobile dropdown */}
       {open && (
         <div className="border-t bg-paper px-6 pb-4 md:hidden" style={{ borderColor: 'var(--color-line)' }}>
-          {session && (
+          {session && streak > 0 && (
             <div
               className="my-3 flex items-center gap-2 px-3 py-2 rounded-full bg-[var(--color-bg)] text-xs w-fit"
             >
               <span className="fire">🔥</span>
-              <span className="font-mono font-bold">12</span>
+              <span className="font-mono font-bold">{streak}</span>
               <span className="text-[var(--color-muted)]">day streak</span>
             </div>
           )}

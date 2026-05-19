@@ -159,6 +159,29 @@ export async function getAttemptsByUser(userId: number): Promise<{
   }))
 }
 
+// Lightweight rows for derived-stats endpoint — no JSONB payloads.
+// Wider limit than getAttemptsByUser so streak/heatmap have enough history.
+export async function getAttemptsForStats(userId: number): Promise<{
+  overallScore: number
+  totalCount: number
+  correctCount: number
+  subjectId: string
+  createdAt: string
+}[]> {
+  const sql = getDb()
+  const rows = await sql`
+    SELECT subject_id, overall_score, total_count, correct_count, created_at
+    FROM assessment_attempts WHERE user_id = ${userId}
+    ORDER BY created_at DESC LIMIT 500`
+  return rows.map(r => ({
+    subjectId: r.subject_id as string,
+    overallScore: Number(r.overall_score),
+    totalCount: r.total_count as number,
+    correctCount: r.correct_count as number,
+    createdAt: (r.created_at as Date).toISOString(),
+  }))
+}
+
 export async function getAttemptById(id: string, userId: number) {
   const sql = getDb()
   const rows = await sql`
