@@ -1,5 +1,6 @@
 'use client'
 
+import { Fragment, type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { useScrollReveal } from '@/hooks/useScrollReveal'
 
@@ -14,11 +15,13 @@ const ROWS: Row[] = [
 ]
 
 const COST_ROW: Row = { label: 'Total cost', cp: '₹299', coaching: '₹40,000+', papers: 'free–₹2k', books: '₹3k+' }
+// Abbreviated cost figures used only on the compact mobile table (full figures stay on desktop).
+const COST_MOBILE = { cp: '₹299', coaching: '₹40k+', papers: '~₹2k', books: '₹3k+' }
 
 export default function Comparison() {
   const reveal = useScrollReveal()
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20 lg:py-28">
+    <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20 lg:py-28">
       <motion.div {...reveal} className="mb-8 sm:mb-10">
         <p className="eyebrow mb-2">The honest comparison</p>
         <h2 className="font-display text-3xl sm:text-4xl md:text-5xl leading-tight">
@@ -26,12 +29,8 @@ export default function Comparison() {
         </h2>
       </motion.div>
 
-      {/* ── Mobile: stacked feature cards ──────────────────────────── */}
-      <div className="md:hidden space-y-2.5">
-        {[...ROWS, COST_ROW].map((r, i) => (
-          <MobileRow key={i} {...r} isCost={r === COST_ROW} />
-        ))}
-      </div>
+      {/* ── Mobile: one compact comparison table (fits down to 320px) ── */}
+      <MobileTable />
 
       {/* ── Desktop: 5-col grid ────────────────────────────────────── */}
       <div className="hidden md:block card overflow-hidden">
@@ -93,49 +92,88 @@ function Cell({ value }: { value: string }) {
   return <div className="px-3 py-4 border-b border-[var(--color-line)] text-center text-[var(--color-muted)] text-xs">{value}</div>
 }
 
-/** Stacked card per row — used on mobile only. Feature name on top, then a
- *  4-column row showing each alternative's value. ClearPass column is tinted. */
-function MobileRow({ label, cp, coaching, papers, books, isCost }: Row & { isCost: boolean }) {
+/* ──────────────────────────────────────────────────────────────────
+ * Mobile-only compact table. A single 5-column grid (feature name + 4
+ * alternatives) that scales with `fr` units so it never overflows on
+ * narrow Android / iPhone-SE screens. The ClearPass column is tinted
+ * top-to-bottom so it reads as one continuous hero band.
+ * ──────────────────────────────────────────────────────────────── */
+function MobileTable() {
   return (
-    <div className="card p-4">
-      <p className="text-sm font-medium mb-3">{label}</p>
-      <div className="grid grid-cols-4 gap-1.5 text-center">
-        <MobileCell label="ClearPass" value={cp} highlight isCost={isCost} />
-        <MobileCell label="Coaching" value={coaching} isCost={isCost} />
-        <MobileCell label="Past papers" value={papers} isCost={isCost} />
-        <MobileCell label="Books" value={books} isCost={isCost} />
+    <div className="md:hidden card overflow-hidden">
+      <div className="grid grid-cols-[1.4fr_repeat(4,1fr)]">
+        {/* Header */}
+        <Head />
+        <Head highlight>CP</Head>
+        <Head>Coach</Head>
+        <Head>Papers</Head>
+        <Head>Books</Head>
+
+        {/* Feature rows */}
+        {ROWS.map((r, i) => (
+          <Fragment key={i}>
+            <RowLabel>{r.label}</RowLabel>
+            <V highlight>{r.cp}</V>
+            <V>{r.coaching}</V>
+            <V>{r.papers}</V>
+            <V>{r.books}</V>
+          </Fragment>
+        ))}
+
+        {/* Cost row (abbreviated figures) */}
+        <RowLabel last>Total cost</RowLabel>
+        <V highlight cost last>{COST_MOBILE.cp}</V>
+        <V cost last>{COST_MOBILE.coaching}</V>
+        <V cost last>{COST_MOBILE.papers}</V>
+        <V cost last>{COST_MOBILE.books}</V>
       </div>
     </div>
   )
 }
 
-function MobileCell({ label, value, highlight, isCost }: { label: string; value: string; highlight?: boolean; isCost: boolean }) {
-  const isDash = value === '—'
+function Head({ children, highlight }: { children?: ReactNode; highlight?: boolean }) {
   return (
     <div
-      className="rounded-lg p-2 flex flex-col items-center justify-center min-h-[58px]"
-      style={{
-        background: highlight ? 'var(--color-warning-soft)' : 'var(--color-bg)',
-        border: highlight ? '1px solid #F0D894' : '1px solid var(--color-line-soft)',
-      }}
+      className="px-1.5 py-2.5 border-b border-[var(--color-line)] flex items-center justify-center text-center"
+      style={highlight ? { background: 'var(--color-warning-soft)' } : undefined}
     >
-      <div
-        className="text-[9px] uppercase tracking-[0.1em] mb-1 leading-none"
-        style={{ color: highlight ? '#7A5A0F' : 'var(--color-muted)' }}
-      >
-        {label}
-      </div>
-      {value === '✓' ? (
-        <span className="text-base font-bold" style={{ color: 'var(--color-success)' }}>✓</span>
-      ) : isDash ? (
-        <span className="text-base" style={{ color: 'var(--color-muted)' }}>—</span>
-      ) : isCost && highlight ? (
-        <span className="font-display text-base leading-none">{value}</span>
-      ) : (
-        <span className="text-[10px] leading-tight" style={{ color: highlight ? '#7A5A0F' : 'var(--color-muted)' }}>
-          {value}
-        </span>
-      )}
+      {highlight ? (
+        <span className="font-display text-[14px]" style={{ color: '#7A5A0F' }}>CP</span>
+      ) : children ? (
+        <span className="text-[10px] font-medium uppercase tracking-wide text-[var(--color-muted)]">{children}</span>
+      ) : null}
+    </div>
+  )
+}
+
+function RowLabel({ children, last }: { children: ReactNode; last?: boolean }) {
+  return (
+    <div className={`px-3 py-3 text-[12px] leading-snug flex items-center ${last ? 'font-medium' : 'border-b border-[var(--color-line)]'}`}>
+      {children}
+    </div>
+  )
+}
+
+function V({ children, highlight, cost, last }: { children: ReactNode; highlight?: boolean; cost?: boolean; last?: boolean }) {
+  const value = String(children)
+  let content: ReactNode
+  if (value === '✓') {
+    content = <span className="text-[15px] font-bold" style={{ color: 'var(--color-success)' }}>✓</span>
+  } else if (value === '—') {
+    content = <span className="text-[var(--color-muted)]">—</span>
+  } else if (value === 'generic') {
+    content = <span className="text-[11px] text-[var(--color-muted)]">gen</span>
+  } else if (cost && highlight) {
+    content = <span className="font-display text-[15px] leading-none">{value}</span>
+  } else {
+    content = <span className="text-[11px]" style={{ color: highlight ? '#7A5A0F' : 'var(--color-muted)' }}>{value}</span>
+  }
+  return (
+    <div
+      className={`px-1.5 py-3 flex items-center justify-center text-center ${last ? '' : 'border-b border-[var(--color-line)]'}`}
+      style={highlight ? { background: 'var(--color-warning-soft)' } : undefined}
+    >
+      {content}
     </div>
   )
 }
