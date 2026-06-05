@@ -53,13 +53,18 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+/* `overflow-x: clip` guards against decorative elements (hero collage glow,
+   ambient blobs) that intentionally bleed past the right edge — it removes the
+   horizontal scroll / blank gutter on mobile without becoming a scroll
+   container, so the sticky nav and vertical scrolling are unaffected. */
+html { scroll-behavior: smooth; overflow-x: clip; }
 body {
   font-family: var(--font-sans);
   background: var(--color-bg);
   color: var(--color-ink);
   -webkit-font-smoothing: antialiased;
   margin: 0;
+  overflow-x: clip;
   background-image:
     radial-gradient(at 8% 12%, rgba(217,80,30,0.04) 0px, transparent 50%),
     radial-gradient(at 92% 88%, rgba(15,27,61,0.04) 0px, transparent 50%);
