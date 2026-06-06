@@ -6,7 +6,8 @@ import { useSession } from 'next-auth/react'
 
 const NAV_LINKS = [
   { href: '/select', label: 'Test Yourself' },
-  { href: '/practice', label: 'Practice' },
+  // Practice starts from the topic selector (per-chapter "Practice →").
+  { href: '/select', label: 'Practice' },
   { href: '/history', label: 'History' },
 ]
 

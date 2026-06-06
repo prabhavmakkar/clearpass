@@ -3,7 +3,8 @@ import Link from 'next/link'
 const productLinks = [
   { label: 'Home', href: '/' },
   { label: 'Test Yourself', href: '/select' },
-  { label: 'Practice', href: '/practice' },
+  // Practice starts from the topic selector (per-chapter "Practice →").
+  { label: 'Practice', href: '/select' },
   { label: 'History', href: '/history' },
 ]
 

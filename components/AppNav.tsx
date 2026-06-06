@@ -7,7 +7,9 @@ import { useStats } from '@/hooks/useStats'
 
 const NAV_LINKS = [
   { href: '/select', label: 'Test Yourself' },
-  { href: '/practice', label: 'Practice' },
+  // Practice is adaptive per-chapter, so it must start from the topic selector
+  // (each chapter has a "Practice →" button). Link here routes through /select.
+  { href: '/select', label: 'Practice' },
   { href: '/history', label: 'History' },
 ]
 

@@ -116,11 +116,34 @@ export function PracticeShell() {
       <div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: 'var(--color-line)', borderTopColor: 'var(--color-ink)' }} />
     </div>
   )
-  if (error) return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>
-    </div>
-  )
+  if (error) {
+    // "No chapter selected" isn't a failure — it means the user reached /practice
+    // without choosing a chapter (adaptive practice is per-chapter). Guide them to
+    // the topic selector rather than dead-ending on a bare error.
+    const noChapter = error === 'No chapter selected'
+    return (
+      <div className="mx-auto max-w-md px-6 py-20 text-center flex flex-col items-center">
+        {noChapter ? (
+          <>
+            <p className="eyebrow mb-3">Adaptive practice</p>
+            <h1 className="font-display text-3xl leading-tight mb-3">Pick a chapter to practice</h1>
+            <p className="text-sm text-[var(--color-muted)] mb-8">
+              Practice adapts to one chapter at a time. Choose a subject and chapter to begin.
+            </p>
+          </>
+        ) : (
+          <p className="text-sm mb-8" style={{ color: 'var(--color-error)' }}>{error}</p>
+        )}
+        <a
+          href="/select"
+          className="inline-block rounded-xl px-8 py-3 text-sm font-bold text-white hover:opacity-90"
+          style={{ background: 'var(--color-ink)' }}
+        >
+          Choose a chapter
+        </a>
+      </div>
+    )
+  }
 
   if (done || (!current && !isReviewing)) {
     const pct = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0
