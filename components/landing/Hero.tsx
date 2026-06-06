@@ -76,7 +76,7 @@ export default function Hero() {
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-success)] animate-pulse" />
             <span className="text-[var(--color-muted)]">Live</span>
             <span className="mx-1 text-[var(--color-line)]">·</span>
-            <span>CA Finals · May 2026 attempt</span>
+            <span>CA Finals · Nov 2026 attempt</span>
           </div>
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] leading-[0.95] sm:leading-[0.92] tracking-tight">
             CA prep,<br />

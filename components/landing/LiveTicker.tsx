@@ -41,7 +41,7 @@ export default function LiveTicker() {
         <div className="hidden md:block text-[var(--color-line)]">·</div>
         <div className="flex items-center gap-2">
           <span ref={sRef} className="font-mono text-base font-bold">1,284</span>
-          <span className="text-[var(--color-muted)]">students prepping for May &apos;26</span>
+          <span className="text-[var(--color-muted)]">students prepping for Nov &apos;26</span>
         </div>
         <div className="hidden md:block text-[var(--color-line)]">·</div>
         <div className="flex items-center gap-2">
