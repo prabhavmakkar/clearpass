@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import { auth, signIn } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+
+export const metadata: Metadata = {
+  title: 'Sign in',
+  description: 'Sign in to ClearPass to take diagnostic CA Final assessments, practice ICAI-style MCQs, and track your exam readiness.',
+  alternates: { canonical: '/sign-in' },
+}
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
   const session = await auth()

@@ -2,6 +2,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Terms of Service — ClearPass',
+  alternates: { canonical: '/terms' },
 }
 
 export default function TermsPage() {
