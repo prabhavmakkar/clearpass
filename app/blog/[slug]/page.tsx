@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import Nav from '@/components/landing/Nav'
-import { posts, getPostBySlug } from '@/lib/blog/posts'
+import { publishedPosts, getPostBySlug } from '@/lib/blog/posts'
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
 export function generateStaticParams() {
-  return posts.map(p => ({ slug: p.slug }))
+  return publishedPosts.map(p => ({ slug: p.slug }))
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

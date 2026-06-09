@@ -53,7 +53,6 @@ export const posts: BlogPost[] = [
 <p>That's the boring truth behind my second marksheet. No new shortcut, no leaked questions. Just closing the gap between <em>understanding</em> AFM and <em>scoring</em> it — which, in the MCQ sections, turned out to be two different skills. I wish someone had told me that before my first attempt instead of after.</p>`,
     related: [
       { label: 'CA Final AFM — chapter guide & practice', href: '/learn/ca-final-afm' },
-      { label: 'CA Final AFM syllabus & section weights', href: '/blog/ca-final-afm-syllabus-section-weights-2026' },
     ],
   },
   {
@@ -346,6 +345,19 @@ export const posts: BlogPost[] = [
   },
 ]
 
+// Slugs temporarily hidden from the UI, sitemap, and routing. Their content
+// stays in `posts` above — delete a slug here to re-publish it.
+const HIDDEN_SLUGS = new Set<string>([
+  'ca-final-afm-syllabus-section-weights-2026',
+  'ca-final-idt-gst-supply-itc-place-of-supply',
+  'ca-final-fr-ind-as-foundations-chapter-guide',
+  'how-to-practise-mcqs-ca-final',
+  'ca-final-audit-section-wise-marking-study-plan',
+])
+
+/** Posts visible in the UI / sitemap / routing (hidden drafts excluded). */
+export const publishedPosts: BlogPost[] = posts.filter(p => !HIDDEN_SLUGS.has(p.slug))
+
 export function getPostBySlug(slug: string): BlogPost | null {
-  return posts.find(p => p.slug === slug) ?? null
+  return publishedPosts.find(p => p.slug === slug) ?? null
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Nav from '@/components/landing/Nav'
-import { posts } from '@/lib/blog/posts'
+import { publishedPosts } from '@/lib/blog/posts'
 
 export const metadata: Metadata = {
   title: 'CA Final Prep Blog — Strategy, Syllabus, and Study Plans',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 }
 
 export default function BlogIndexPage() {
-  const sorted = [...posts].sort((a, b) => b.publishedISO.localeCompare(a.publishedISO))
+  const sorted = [...publishedPosts].sort((a, b) => b.publishedISO.localeCompare(a.publishedISO))
   return (
     <main className="min-h-screen">
       <Nav />

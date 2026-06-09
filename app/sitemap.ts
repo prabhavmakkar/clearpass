@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getSubjects, getSections, getChapters } from '@/lib/queries'
-import { posts } from '@/lib/blog/posts'
+import { publishedPosts } from '@/lib/blog/posts'
 
 const BASE = 'https://clearpass.snpventures.in'
 
@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/refund`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   ]
 
-  const blogEntries: MetadataRoute.Sitemap = posts.map(p => ({
+  const blogEntries: MetadataRoute.Sitemap = publishedPosts.map(p => ({
     url: `${BASE}/blog/${p.slug}`,
     lastModified: new Date(p.updatedISO),
     changeFrequency: 'monthly',
