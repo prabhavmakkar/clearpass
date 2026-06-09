@@ -43,7 +43,9 @@ export default async function BlogPostPage({ params }: PageProps) {
     description: post.description,
     datePublished: post.publishedISO,
     dateModified: post.updatedISO,
-    author: { '@type': 'Organization', name: 'ClearPass' },
+    author: post.author
+      ? { '@type': 'Person', name: post.author.name }
+      : { '@type': 'Organization', name: 'ClearPass' },
     publisher: {
       '@type': 'Organization',
       name: 'ClearPass',
@@ -72,6 +74,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <h1 className="mb-4 text-4xl font-black leading-tight tracking-tight md:text-5xl">{post.title}</h1>
         <p className="mb-10 text-xs text-gray-400">
+          {post.author && <>By {post.author.name}{' · '}</>}
           {new Date(post.publishedISO).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
           {' · '}{post.readMinutes} min read
         </p>
@@ -80,6 +83,12 @@ export default async function BlogPostPage({ params }: PageProps) {
           className="blog-body"
           dangerouslySetInnerHTML={{ __html: post.body }}
         />
+
+        {post.author?.note && (
+          <p className="mt-10 border-t border-gray-100 pt-6 text-sm italic text-gray-500">
+            <span className="font-medium not-italic text-gray-700">{post.author.name}</span> — {post.author.note}
+          </p>
+        )}
 
         {post.related.length > 0 && (
           <section className="mt-16 border-t border-gray-100 pt-8">

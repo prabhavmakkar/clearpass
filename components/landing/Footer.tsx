@@ -9,6 +9,8 @@ const productLinks = [
 ]
 
 const resourceLinks = [
+  { label: 'Blog', href: '/blog' },
+  { label: 'Guides', href: '/learn' },
   { label: 'Telegram Bot', href: 'https://t.me/ClearpassCAbot', external: true },
   { label: 'Help', href: '/help' },
 ]

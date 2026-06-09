@@ -9,6 +9,7 @@ const NAV_LINKS = [
   // Practice starts from the topic selector (per-chapter "Practice →").
   { href: '/select', label: 'Practice' },
   { href: '/history', label: 'History' },
+  { href: '/blog', label: 'Blog' },
 ]
 
 export default function Nav() {
@@ -88,13 +89,21 @@ export default function Nav() {
             </div>
           </>
         ) : (
-          <a
-            href="/sign-in"
-            className="rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-            style={{ background: 'var(--color-ink)' }}
-          >
-            Sign In
-          </a>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/blog"
+              className="text-sm font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-ink)]"
+            >
+              Blog
+            </Link>
+            <a
+              href="/sign-in"
+              className="rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ background: 'var(--color-ink)' }}
+            >
+              Sign In
+            </a>
+          </div>
         )}
       </div>
 

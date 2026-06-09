@@ -14,9 +14,48 @@ export interface BlogPost {
   body: string
   /** Internal links to /learn pages this post supports. */
   related: { label: string; href: string }[]
+  /** Optional named author for a byline + Person structured data (E-E-A-T). */
+  author?: { name: string; note?: string }
 }
 
 export const posts: BlogPost[] = [
+  {
+    slug: 'ca-final-mcq-stop-losing-easy-marks',
+    title: 'How I Stopped Losing Easy Marks in CA Final MCQs (2nd Attempt)',
+    description:
+      'I failed AFM on my first CA Final attempt — not because of any chapter I had not studied. Here is what I learned about the MCQ sections in my second cycle, and the marks I had been quietly leaking the whole time.',
+    publishedISO: '2026-06-09',
+    updatedISO: '2026-06-09',
+    readMinutes: 3,
+    author: {
+      name: 'CA Shreya Sharma',
+      note: 'Cleared CA Final in November 2025, on her second attempt.',
+    },
+    excerpt:
+      "I failed AFM on my first attempt — not by much, and not because of any chapter I hadn't studied. Here's what I figured out about the MCQ sections the second time around, and the marks I'd been quietly leaking all along.",
+    body: `<p>I failed AFM on my first attempt. Not by a lot — and that's exactly what ate at me for six months. When I finally looked at the marksheet, I couldn't point to a single chapter I hadn't known. So what actually went wrong?</p>
+
+<p>It took me most of my second prep cycle to figure out, and it wasn't a knowledge problem. It was the MCQs.</p>
+
+<p>Here's what nobody really drills into you about the objective sections. In a subjective answer, a wrong final figure still earns you something — the examiner sees your working and gives step marks. In an MCQ there's no such mercy. You tick the right option or you don't. Two marks, gone. The first time around I lost a frightening number of marks on questions I genuinely understood.</p>
+
+<h2>The three ways I was leaking marks</h2>
+<p>When I started reviewing my mock MCQs properly the second time — not the score, the actual wrong ones — the same three mistakes kept coming back:</p>
+<ul>
+<li><strong>Rounding too early.</strong> I'd round WACC to 11% halfway through, and by the last step I'd be ₹40 off the right option, so I'd confidently tick the distractor that matched my rounded number. ICAI sets those distractors on purpose. They know where you'll round wrong — because I did it every single time.</li>
+<li><strong>Sign and direction.</strong> Forex was my nemesis. I'd get the figure right and then add a premium where I should have subtracted a discount. The math was fine. The answer was still zero.</li>
+<li><strong>Misreading the stem.</strong> "Cost of equity" when it said cost of capital. "Per unit" when it wanted the total. A rate that was already net of tax. I read fast because I "knew" the topic, and that confidence is exactly what cost me.</li>
+</ul>
+
+<h2>What actually changed the second time</h2>
+<p>I didn't re-read the modules. I already knew them — re-reading just <em>feels</em> productive without fixing anything. What changed the result was doing MCQs under real time pressure and then sitting with the ones I got wrong until I could see the pattern. Some weeks it was almost all rounding. Once I knew that, it stopped being five mistakes and became one habit I could actually fix.</p>
+
+<p>That's the boring truth behind my second marksheet. No new shortcut, no leaked questions. Just closing the gap between <em>understanding</em> AFM and <em>scoring</em> it — which, in the MCQ sections, turned out to be two different skills. I wish someone had told me that before my first attempt instead of after.</p>`,
+    related: [
+      { label: 'CA Final AFM — chapter guide & practice', href: '/learn/ca-final-afm' },
+      { label: 'CA Final AFM syllabus & section weights', href: '/blog/ca-final-afm-syllabus-section-weights-2026' },
+    ],
+  },
   {
     slug: 'ca-final-afm-syllabus-section-weights-2026',
     title: 'CA Final AFM Syllabus & Section Weights — Complete Guide',
